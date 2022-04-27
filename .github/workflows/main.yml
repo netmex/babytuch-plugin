@@ -1,0 +1,26 @@
+name: Generate Plugin Archive
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  create-archive:
+    name: "Use Composer to Create Archive"
+    runs-on: ubuntu-latest
+    steps:
+        - name: 🚚 Get latest code
+          uses: actions/checkout@v2.3.2
+        - name: Install PHP
+        - uses: "shivammathur/setup-php@v2"
+          with:
+            php-version: "latest"
+        - uses: "ramsey/composer-install@v2"
+        - name: Build archive
+        - uses: php-actions/composer@v6
+          with:
+            command: composer archive --format=zip --file babytuch-plugin
+        - name: Upload Release
+          uses: ncipollo/release-action@v1
+          with:
+            artifacts: "babytuch-plugin.zip"
+            token: ${{ secrets.GITHUB_TOKEN }}
