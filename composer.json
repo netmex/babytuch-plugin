@@ -1,0 +1,54 @@
+{
+    "name": "babytuch/babytuch-plugin",
+    "description": "Babytuch Plugin für die Backend-Logik",
+    "type": "wordpress-plugin",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Dave Basler",
+            "email": "davebasler97@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "guzzlehttp/guzzle": "^7.0",
+        "ext-json": "*",
+        "tecnickcom/tcpdf" : "^6.4.1",
+        "setasign/fpdi": "^2.0",
+        "aferrandini/phpqrcode": "1.0.1"
+    },
+    "autoload": {
+        "psr-4": {"Inc\\": "./inc"}
+    },
+    "extra": {
+        "installer-paths": {
+            "vendor/{$vendor}/{$name}": [
+                "woocommerce/woocommerce"
+            ]
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7",
+        "wordpress/wordpress": "dev-master"
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/WordPress/wordpress-develop/"
+        }
+    ],
+    "archive": {
+        "exclude": [
+            ".*",
+            "!.gitignore",
+            "node_modules/",
+            "vendor/woocommerce",
+            "vendor/phpunit",
+            "phpunit.xml.dist",
+            "composer/",
+            "tests/",
+            "*.lst",
+            "*.yml"
+        ]
+    }
+}
