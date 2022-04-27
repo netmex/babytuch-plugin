@@ -17,9 +17,10 @@ jobs:
         - name: Install Composer dependencies
           uses: "ramsey/composer-install@v2"
         - name: Build archive
-          uses: php-actions/composer@v6
-          with:
-            command: composer archive --format=zip --file babytuch-plugin
+          run: composer archive --format=zip --file babytuch-plugin
+          # uses: php-actions/composer@v6
+          # with:
+          #  command: archive --format=zip --file babytuch-plugin
         - name: Upload Release
           uses: ncipollo/release-action@v1
           with:
