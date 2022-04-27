@@ -16,6 +16,8 @@ jobs:
             php-version: "7.4"
         - name: Install Composer dependencies
           uses: "ramsey/composer-install@v2"
+          with:
+            composer-options: "--no-dev"
         - name: Build archive
           run: composer archive --format=zip --file babytuch-plugin
           # uses: php-actions/composer@v6
