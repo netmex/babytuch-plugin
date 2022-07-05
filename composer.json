@@ -45,7 +45,6 @@
             "vendor/woocommerce",
             "vendor/phpunit",
             "phpunit.xml.dist",
-            "composer/",
             "tests/",
             "*.lst",
             "*.yml"
