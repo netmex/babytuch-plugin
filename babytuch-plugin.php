@@ -383,9 +383,11 @@ function new_order_database_entry( $order_id ) {
 	if(!$order_id) return;
 	$order = wc_get_order($order_id);
 
-	$order_process = BT_OrderProcess::create_from_order($order);
+    // only create new order process if it does not exist yet
+    if(!BT_OrderProcess::load_by_order_id($order_id)) {
+        $order_process = BT_OrderProcess::create_from_order($order);
+    }
 
-	//wp_mail( 'davebasler@hotmail.com', '!!!', 'ALLES KLAR!' );
 
 	//GUEST KONTO
 	$order = wc_get_order($order_id);

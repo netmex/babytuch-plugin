@@ -123,6 +123,8 @@ class BT_OrderProcess extends Entity {
 
 		$order_id = $order->get_id();
 		$price = $order->get_total() - $order->get_shipping_total();
+        $shipment_cost = $order->get_shipping_total();
+
 
 		$data = array(
 			'date_order_created' => current_time( 'mysql' ),
@@ -141,6 +143,7 @@ class BT_OrderProcess extends Entity {
 			'return_received_admin_code' => Helpers::generateUniqueCode($order_id),
 			'return_received_admin_activated' => false,
 			'refunded' => false,
+            'cost_of_sending' => $shipment_cost
 		);
 
 		$order_process = new BT_OrderProcess((object) $data);
@@ -420,7 +423,7 @@ class BT_OrderProcess extends Entity {
 	/**
 	 * @return int
 	 */
-	public function getIsReplacementOrderOf(): int {
+	public function getReplacedOrderId(): int {
 		return $this->is_replacement_order_of;
 	}
 
@@ -616,5 +619,26 @@ class BT_OrderProcess extends Entity {
 	public function setRefunded( bool $refunded ): void {
 		$this->refunded = $refunded;
 	}
+
+    public function setIsReplacementOrder(bool $is_replacement_order): void {
+        $this->is_replacement_order = $is_replacement_order;
+    }
+
+    /**
+     * Set the id of the order that is replaced by this order
+     * @param int $replaced_order_id
+     * @return void
+     */
+    public function setReplacedOrderId(int $replaced_order_id): void {
+        $this->is_replacement_order_of = $replaced_order_id;
+    }
+
+    public function setReplaceActivated(bool $replace_activated): void {
+        $this->replace_activated = $replace_activated;
+    }
+
+    public function setReplacementOrderId(int $replacement_order_id): void {
+        $this->replacement_order = $replacement_order_id;
+    }
 
 }
