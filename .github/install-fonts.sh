@@ -3,6 +3,9 @@
 # move to root folder
 cd ..
 
+# output current path
+pwd
+
 # remove examples
 rm -rf vendor/tecnickcom/tcpdf/examples
 
