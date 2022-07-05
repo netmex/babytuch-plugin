@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# move to root folder
-cd ..
-
 # output current path
 pwd
 
