@@ -8,9 +8,9 @@ Make sure that you have composer v1.10.6 installed (` composer self-update 1.10.
 
 # Building the Plugin
 1. Run `composer archive --format=zip --file babytuch-plugin`
-TODO: find a way to deploy it somewhere for automatic updates
+2. Run `.github/install-fonts.sh` which will install the fonts and remove any unused fonts
 
-
+Tagging a new version on GitHub will automatically trigger a new build. 
 
 # Pages
 - `ReturnAndReplacements.php` - page where a customer can select whether to return (i.e. receive a refund) or replace (i.e. receive another product) the ordered product.
