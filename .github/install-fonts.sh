@@ -6,6 +6,9 @@ cd ..
 # output current path
 pwd
 
+# output all files
+ls
+
 # remove examples
 rm -rf vendor/tecnickcom/tcpdf/examples
 
