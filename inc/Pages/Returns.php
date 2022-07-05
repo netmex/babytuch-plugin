@@ -31,29 +31,33 @@ class Returns
 
 		    if(empty($_POST["products_to_send_back"])){
 			    echo'<h2>Bitte wählen Sie mindestens 1 Produkt zum Zurücksenden.</h2>';
-		    } elseif(empty($_POST["iban"])) {
-			    echo'<h2>Bitte geben Sie Ihre IBAN-Nr. ein.</h2>';
-		    } else {
-
-			    $return_code = $_GET['code'];
-			    $return_reason = $_POST["reason"];
-			    $iban = $_POST['iban'];
-			    $return_product_ids = $_POST["products_to_send_back"];
-
-			    try {
-				    $controller = LogisticsController::create_from_return_code( $return_code );
-				    $controller->start_refund($return_reason, $iban, $return_product_ids);
-				    ?>
-				    <h3>Deine Rücksendung wurde erfolgreich aktiviert.</h3>
-                    <h4>Sobald wir deine Rücksendung erhalten und kontrolliert haben werden wir dir die Kosten zurückerstatten.</h4>
-                    <?php
-				    return;
-
-			    } catch ( \Exception $e ) {
-				    echo '<h2>'.$e->getMessage().'</h2>';
-				    return;
-			    }
+                return;
 		    }
+
+            if(empty($_POST["iban"])) {
+			    echo'<h2>Bitte geben Sie Ihre IBAN-Nr. ein.</h2>';
+                return;
+		    }
+
+            $return_code = $_GET['code'];
+            $return_reason = $_POST["reason"];
+            $iban = $_POST['iban'];
+            $return_product_ids = $_POST["products_to_send_back"];
+
+            try {
+                $controller = LogisticsController::create_from_return_code( $return_code );
+                $controller->start_refund($return_reason, $iban, $return_product_ids);
+                ?>
+                <h3>Deine Rücksendung wurde erfolgreich aktiviert.</h3>
+                <h4>Sobald wir deine Rücksendung erhalten und kontrolliert haben werden wir dir die Kosten zurückerstatten.</h4>
+                <?php
+                return;
+
+            } catch ( \Exception $e ) {
+                echo '<h2>'.$e->getMessage().'</h2>';
+                return;
+            }
+
 	    }
 
         // code is provided via url
@@ -103,8 +107,7 @@ class Returns
 			    $returns_reasons = get_option('returns_reasons');
 			    foreach($returns_reasons as $reason_pair){
 				    $reason = $reason_pair["reason"];
-				    echo"
-                        <option value='$reason'>$reason</option>";
+				    echo"<option value='$reason'>$reason</option>";
 			    }
 			    ?>
             </select><br><br>

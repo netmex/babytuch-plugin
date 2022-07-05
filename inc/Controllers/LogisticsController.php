@@ -6,6 +6,8 @@ use Exception;
 use Inc\Api\Helpers;
 use Inc\Mails\ReplaceMail;
 use Inc\Models\BT_OrderProcess;
+use WC_Order;
+use WC_Product;
 
 class LogisticsController {
 
@@ -156,12 +158,16 @@ class LogisticsController {
 
     /**
      * Starts the replacement process after the user filled out the respective form
-     * @param string $reason
-     * @param array $product_ids
+     * @param string $return_reason The reason why the products are replaced
+     * @param array $replaced_product_ids the ids of the products that get replaced
+     * @param array $replacement_product_ids the ids of the products that will replace the returned products
+     * @param array $replacement_product_sizes the siszes of the products that will replace the returned products
      * @return void
+     * @throws \ReflectionException
      * @throws Exception
      */
-    public function start_replacement(string $reason, array $product_ids) {
+    public function start_replacement(string $return_reason, array $replaced_product_ids, array $replacement_product_ids, array $replacement_product_sizes) {
+
         if($this->order_process->isReturnActivated()) {
             throw new Exception("Deine Bestellung ist bereits zur Rücksendung aktiviert worden.");
         }
@@ -171,10 +177,101 @@ class LogisticsController {
             throw new Exception("Die Frist von $deadline Tagen ist abgelaufen. Diese Bestellung kann nicht mehr rückgesandt werden.");
         }
 
-        if(empty($product_ids)) {
+        if(empty($replaced_product_ids)) {
             throw new Exception("Bitte wählen Sie mindestens 1 Produkt zum Umtauschen.");
         }
+
+        $return_products = array_map("wc_get_product", $replaced_product_ids);
+        $replacement_products = [];
+
+        foreach($replaced_product_ids as $key => $replaced_product_id) {
+            $replacement_id = $replacement_product_ids[$key];
+            $replacement_size = $replacement_product_sizes[$key];
+
+            // returns the variable product (but not the correct size variant yet)
+            $replacement_product = wc_get_product( $replacement_id );
+
+            $replacement_variant = $this->find_product_variant_with_size($replacement_product, $replacement_size);
+            if(!$replacement_variant) {
+                throw new Exception("Es wurde kein Ersatzprodukt mit der Grösse $replacement_size gefunden.");
+            }
+            $replacement_products[] = $replacement_variant;
+
+        }
+
+        $this->out_of_stock_check($replacement_products);
+
+        $this->add_return_reason($return_reason);
+
+        $order = $this->order_process->getOrder();
+        $replacement_order = $this->create_replacement_order($replacement_products, $order);
+
+        // update order process of old order to reflect changes
+        $this->order_process->setReplaceActivated(true);
+        $this->order_process->setReplacementOrderId($replacement_order->get_id());
+        $this->order_process->setReturnActivated(true);
+        $this->order_process->setReturnReason($return_reason);
+        //$this->order_process->setTotalPrice($return_price_total);  // TODO: check what this price update exactly does why do we set it to this? then this stores the total value of the returned products
+        $this->order_process->setReturnProducts(implode(",", $replaced_product_ids));
+        $this->order_process->save();
+
+        $order->update_status('returning');
+
+        do_action('babytuch_return_start', $this->order_process->getOrderId(), $return_products);
+
     }
+
+    /**
+     * @throws \ReflectionException
+     * @throws \WC_Data_Exception
+     */
+    public function create_replacement_order(array $replacement_products, WC_Order $replaced_order): WC_Order {
+        $replacement_order = wc_create_order();
+        foreach($replacement_products as $replacement_product) {
+            $replacement_order->add_product( $replacement_product);
+        }
+
+        $replacement_order->set_address($replaced_order->get_address('billing'), 'billing');
+        $replacement_order->set_address($replaced_order->get_address('shipping'), 'shipping');
+        $replacement_order->set_customer_id($replaced_order->get_customer_id());
+        $replacement_order->calculate_totals();
+        $replacement_order->set_total(0); // customer does not need to pay for replacement order
+        $replacement_order->update_status("on-hold", 'Umtausch Bestellung', TRUE);
+
+        // create order process for replacement order
+        $order_process = BT_OrderProcess::load_by_order_id($replacement_order->get_id());
+        $order_process->setIsReplacementOrder(true);
+        $order_process->setReplacedOrderId($replaced_order->get_id());
+        $order_process->save();
+        // TODO: what do we do with 'cost_of_sending'?
+
+        return $replacement_order;
+
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function out_of_stock_check(array $replacement_products) {
+        foreach($replacement_products as $replacement_product) {
+            if($replacement_product->get_stock_quantity() <= 0) {
+                throw new Exception("Einige Ihrer Ersatzprodukte sind nicht mehr an Lager: ".$replacement_product->get_name()." - Grösse ".$replacement_product->get_data()['attributes']['groesse']." Bitte wählen Sie eine andere Kombination.");
+            }
+        }
+    }
+
+    private function find_product_variant_with_size(WC_Product $product, string $size) {
+        // find correct size variation for product
+        $children_ids = $product->get_children();
+        $children = array_map("wc_get_product", $children_ids);
+        foreach($children as $child) {
+            if($child->get_data()['attributes']['groesse'] == $size) {
+                return $child;
+            }
+        }
+        return null;
+    }
+
 
 	public function start_refund(string $reason, string $iban, array $product_ids) {
 		if($this->order_process->isReturnActivated()) {
@@ -243,7 +340,7 @@ class LogisticsController {
 
 
 	/**
-	 * Logistics starts to control the content of the package the QR on the packet
+	 * Logistics starts to control the content of the package by scanning the QR on the packet
 	 */
 	public function start_return_control() {
 		$order = $this->order_process->getOrder();
@@ -378,8 +475,12 @@ class LogisticsController {
 	}
 
 
-
-	private function add_return_reason($new_reason) {
+    /**
+     * Adds return reason to list of available reasons or updates count of existing reasons
+     * @param $new_reason
+     * @return void
+     */
+    private function add_return_reason($new_reason) {
 		$returns_reasons = get_option('returns_reasons');
 		$new_returns_array = array();
 		foreach($returns_reasons as $reason_pair){

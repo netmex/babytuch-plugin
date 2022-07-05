@@ -1,1 +1,6 @@
 vendor
+.idea
+qr_codes
+billing_documents
+referral_documents
+reorder_documents

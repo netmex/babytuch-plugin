@@ -56,33 +56,32 @@ class Returns extends BaseController {
 
 		$return_information_sent = get_post_meta( $post->ID, '_babytuch_return_information_sent', true ) ?: false;
 
-		// TODO: display info somewhere if it's replacement order
 
+        if($order_process->isReplacementOrder()) {
+            echo '<div>Bei dieser Bestellung handelt es sich um eine Ersatzbestellung.</div>';
+            echo '<div><strong>Ersatzbestellung von:</strong> <a href="'.get_edit_post_link($order_process->getReplacedOrderId()).'" target="_blank">'.($order_process->getReplacedOrderId()).'</a></div>';
+            echo '<hr>';
+        }
 
-		if(!$order_process->isReturnActivated()) {
-			echo "<div>
-                Diese Bestellung ist nicht für den Rückversand aktiviert.
-            </div>";
-		} else {
+        if($order_process->isReturnActivated()) {
+            echo "<div>";
+            echo    "<strong>Retournierte Produkte:</strong>";
+            echo    "<ul>";
 
-			echo "<div>";
-			echo    "<strong>Retournierte Produkte:</strong>";
-			echo    "<ul>";
+            $products = $order_process->getReturnProducts();
+            foreach($products as $product) {
+                $name = $product->get_name();
+                $size = $product->get_attributes();
+                $size_str = $size["groesse"];
+                echo "<li><strong>".$name."</strong> - Grösse: ".$size_str." - Preis: ".$product->get_price()."</li>";
+            }
+            echo    "</ul>";
+            echo "</div>";
+            echo '<div><strong>Begründung:</strong> '.$order_process->getReturnReason().'</div>';
 
-			$products = $order_process->getReturnProducts();
-			foreach($products as $product) {
-				$name = $product->get_name();
-				$size = $product->get_attributes();
-				$size_str = $size["groesse"];
-				echo "<li><strong>".$name."</strong> - Grösse: ".$size_str." - Preis: ".$product->get_price()."</li>";
-			}
-			echo    "</ul>";
-			echo "</div>";
-			echo '<div><strong>Begründung:</strong> '.$order_process->getReturnReason().'</div>';
+            echo '<hr>';
 
-			echo '<hr>';
-
-			echo '<div>
+            echo '<div>
 				<div>
                 	<strong>Rückversandetikette:</strong> <a target="_blank" href="'.$return_label_url.'">PDF Anzeigen</a>
             	</div>
@@ -92,25 +91,31 @@ class Returns extends BaseController {
           	</div>
         	';
 
-			echo '<hr>';
+            echo '<hr>';
 
-			if($order_process->isReplaceActivated()) {
-				echo '<div><strong>Ersatz gewünscht:</strong> '.($order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
-				echo '<div><strong>Ersatzbestellung:</strong> <a href="'.get_edit_post_link($order_process->getReplacementOrderId()).'" target="_blank">'.($order_process->getReplacementOrderId()).'</a></div>';
-			} else {
-				echo '<div><strong>Rückerstattung gewünscht:</strong> '.(!$order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
-				echo '<div><strong>Betrag für Rückerstattung:</strong> CHF '.($order_process->getTotalPrice()).'</div>';
-				echo '<div><strong>IBAN bekannt:</strong> '.($iban ? "Ja" : "Nein").'</div>';
-				echo '<div><strong>Rückerstattet:</strong> '.($order_process->isRefunded() ? "Ja" : "Nein").'</div>';
-			}
-			echo "<hr>";
+            if($order_process->isReplaceActivated()) {
+                echo '<div><strong>Ersatz gewünscht:</strong> '.($order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
+                echo '<div><strong>Ersatzbestellung:</strong> <a href="'.get_edit_post_link($order_process->getReplacementOrderId()).'" target="_blank">'.($order_process->getReplacementOrderId()).'</a></div>';
+            } else {
+                echo '<div><strong>Rückerstattung gewünscht:</strong> '.(!$order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
+                echo '<div><strong>Betrag für Rückerstattung:</strong> CHF '.($order_process->getTotalPrice()).'</div>';
+                echo '<div><strong>IBAN bekannt:</strong> '.($iban ? "Ja" : "Nein").'</div>';
+                echo '<div><strong>Rückerstattet:</strong> '.($order_process->isRefunded() ? "Ja" : "Nein").'</div>';
+            }
+            echo "<hr>";
 
-			//echo '<div><strong>Rückversandavisierung E-Mail verschickt:</strong> '.($return_information_sent ? "Ja" : "Nein" ).'</div>';
-			echo '<div><strong>Rückversandauftrag:</strong> <a target="_blank" href="'.$return_order_url.'">PDF Anzeigen</a></div>';
-			echo '<div><strong>Rücksendeavisierung bestätigt:</strong> '.($order_process->isReturnReceivedAdminActivated() ? "Ja" : "Nein").'</div>';
-			echo '<div><strong>Paket bei Logistik eingetroffen:</strong> '.($order_process->isReturnControlStarted() ? "Ja" : "Nein").'</div>';
-			echo '<div><strong>Inhalt von Logistik kontrolliert:</strong> '.($order_process->isReturnReceivedActivated() ? "Ja" : "Nein").'</div>';
-			echo "<hr>";
+            //echo '<div><strong>Rückversandavisierung E-Mail verschickt:</strong> '.($return_information_sent ? "Ja" : "Nein" ).'</div>';
+            echo '<div><strong>Rückversandauftrag:</strong> <a target="_blank" href="'.$return_order_url.'">PDF Anzeigen</a></div>';
+            echo '<div><strong>Rücksendeavisierung bestätigt:</strong> '.($order_process->isReturnReceivedAdminActivated() ? "Ja" : "Nein").'</div>';
+            echo '<div><strong>Paket bei Logistik eingetroffen:</strong> '.($order_process->isReturnControlStarted() ? "Ja" : "Nein").'</div>';
+            echo '<div><strong>Inhalt von Logistik kontrolliert:</strong> '.($order_process->isReturnReceivedActivated() ? "Ja" : "Nein").'</div>';
+            echo "<hr>";
+        }
+
+		if(!$order_process->isReturnActivated()) {
+			echo "<div>
+                Diese Bestellung ist nicht für den Rückversand aktiviert.
+            </div>";
 		}
 
 
