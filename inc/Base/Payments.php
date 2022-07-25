@@ -25,7 +25,7 @@ class Payments{
 
 	    $payment_method = $order->get_payment_method();
 	    if ($payment_method !== 'sqrip') {
-		    $order_id = $order->id;
+		    $order_id = $order->get_id();
 		    $invoice_pdf_path = get_post_meta($order_id,'_babytuch_invoice_pdf_path', true );
 		    if($invoice_pdf_path) {
 		    	$attachments[] = $invoice_pdf_path;

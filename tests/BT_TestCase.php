@@ -18,6 +18,20 @@ class BT_TestCase extends WP_UnitTestCase {
 	);
 
 
+    /**
+     * Creates a new order
+     * @return WC_Order
+     */
+    protected function initOrder(): WC_Order {
+
+        $order = wc_create_order();
+        $order->add_product( self::$variation, 2);
+        $order->set_address( $this->customerAddress, 'billing' );
+        $order->calculate_totals();
+
+        return $order;
+    }
+
 	/**
 	 * @before
 	 */
@@ -115,6 +129,38 @@ class BT_TestCase extends WP_UnitTestCase {
 		static::$variation = $variation;
 
         static::$ready = true;
+    }
+
+    public function setUp() {
+        parent::setUp();
+        add_action("doing_it_wrong_run", [$this, "_wp_doing_it_wrong"]);
+   }
+
+    public function tearDown() {
+        parent::tearDown();
+        remove_action("doing_it_wrong_run", [$this, "_wp_doing_it_wrong"]);
+    }
+
+    /**
+     * Provides more context to the broad "you're doing it wrong wordpress methods"
+     * @param $function
+     * @param $message
+     * @param $version
+     * @return void
+     */
+    public function _wp_doing_it_wrong($function, $message = "", $version = "") {
+        $msg = "Youre Doing It Wrong at: $function ($version): $message" . "\n";
+
+        foreach (debug_backtrace() as $traceIndex => $traceContent) {
+            if(!$this->FilterStackTrace($traceIndex )) { continue;  }
+            $msg .= sprintf("#%s '%s' at '%s'", $traceIndex , @$traceContent["function"], @$traceContent["file"]) . "\n";
+        }
+
+        $this->fail($msg);
+    }
+
+    protected function FilterStackTrace($index) {
+        return true;
     }
 
 

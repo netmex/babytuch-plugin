@@ -5,10 +5,7 @@
  * @package Babytuch_Plugin
  */
 
-use Inc\Api\Address;
-use Inc\Api\Helpers;
 use Inc\Base\Shipping;
-use Tests\BT_TestCase;
 
 /**
  * Sample test case.

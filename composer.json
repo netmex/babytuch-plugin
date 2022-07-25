@@ -18,7 +18,10 @@
         "aferrandini/phpqrcode": "1.0.1"
     },
     "autoload": {
-        "psr-4": {"Inc\\": "./inc"}
+        "psr-4": {
+            "Inc\\": "./inc",
+            "Tests\\": "./tests"
+        }
     },
     "extra": {
         "installer-paths": {
@@ -29,7 +32,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^7",
-        "wordpress/wordpress": "dev-master"
+        "wordpress/wordpress": "dev-master",
+        "yoast/phpunit-polyfills": "1.x-dev"
     },
     "repositories": [
         {

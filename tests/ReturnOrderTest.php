@@ -5,6 +5,21 @@ use Inc\Base\Returns;
 use Inc\Models\BT_OrderProcess;
 
 final class ReturnOrderTest extends BT_TestCase {
+
+    public function test_return_check_not_ok() {
+
+        // activate testing data
+        update_option('post_api_testing', 1);
+
+        $order = wc_create_order();
+        $order->add_product( self::$variation, 2);
+        $order->set_address( $this->customerAddress, 'billing' );
+        $order->calculate_totals();
+        $order->update_status("returning", '', TRUE);
+
+    }
+
+
 	public function test_return_order_is_generated_correctly() {
 		// activate testing data
 		update_option('post_api_testing', 1);

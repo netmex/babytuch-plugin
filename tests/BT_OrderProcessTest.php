@@ -3,7 +3,7 @@
 
 use Inc\Api\Helpers;
 use Inc\Models\BT_OrderProcess;
-use Tests\BT_TestCase;
+
 
 class BT_OrderProcessTest extends BT_TestCase {
     public function test_new_order_process_is_saved() {
