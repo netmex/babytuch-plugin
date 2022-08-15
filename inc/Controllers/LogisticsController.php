@@ -220,7 +220,7 @@ class LogisticsController {
         $this->order_process->setReturnProducts(implode(",", $replaced_product_ids));
         $this->order_process->save();
 
-        $order->update_status('returning');
+        $order->update_status('returning', "Rücksendung wurde angemeldet");
 
         do_action('babytuch_return_start', $this->order_process->getOrderId(), $return_products);
 
@@ -242,8 +242,7 @@ class LogisticsController {
         $replacement_order->calculate_totals();
         $replacement_order->set_total(0); // customer does not need to pay for replacement order
 
-        // TODO: introduce new status for this case
-        $replacement_order->update_status("on-hold", 'Umtausch Bestellung', TRUE);
+        $replacement_order->update_status("awaiting-return", 'Ersatzbestellung wartet auf Rücksendung der Originalbestellung', TRUE);
 
         // create order process for replacement order
         $order_process = BT_OrderProcess::load_by_order_id($replacement_order->get_id());
@@ -340,7 +339,7 @@ class LogisticsController {
 
 		$this->order_process->setReturnReceivedAdminActivated(true);
 		$this->order_process->save();
-		$order->update_status('return-received');
+		$order->update_status('return-received', "Rücksendung ist bei Logistik eingetroffen.");
 
 		// TODO: temporary store order ID and display warning if they don't match
 	}

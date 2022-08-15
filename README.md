@@ -19,6 +19,23 @@ Tagging a new version on GitHub will automatically trigger a new build.
 - `OrderProcessing.php` - page where logistics can accept / acknowledge the shipping order after an order was paid and the pdf was sent to them via e-mail
 - `OrderSending.php` - page where logistics marks the order as finished packing (and ready to be sent)
 
+# WooCommerce Statuses
+- **Pending:** Bestellung wurde erfasst [WooCommerce]
+- **On-Hold:** Bestellung wurde noch nicht bezahlt [WooCommerce]
+- **Failed:** Bezahlung ist fehlgeschlagen [WooCommerce]
+- **Processing:** Bestellung wurde bezahlt und ist bereit zur Verarbeitung [WooCommerce]
+- **Packing:** Bestellung ist im Verpackungsprozess [Custom]
+- **Cancelled:** Bestellung wurde abgebrochen [WooCommerce]
+- **Completed:** Bestellung wurde verarbeitet und versandt [WooCommerce]
+- **Returning:** Ware ist auf dem Weg zurück vom Kunden [Custom]
+- **Awaiting-return:** Ersatzbestellung wartet auf Rücksendung von Originalbestellung [Custom]
+- **Return-received:** Rücksendung wurde von Logistik empfangen [Custom]
+- **Action-required:** Bestellung benötigt manuellen Eingriff [Custom]
+- **Refund-required:** Bestellung muss manuell zurückerstattet werden [Custom]
+- **Refunded:** Bestellung wurde vollständig zurückerstattet [WooCommerce]
+- **Partially-refunded:** Bestellung wurde teilweise zurückerstattet [Custom]
+- **Replaced:** Ware wurde ersetzt (neue Bestellung ausgelöst) [Custom]
+
 # Testing
 1. run `tests/bin/install-wp-tests.sh <db-name> <db-user> <db-pass>` e.g: `tests/bin/install-wp-tests.sh wordpress_test root "" 127.0.0.1 5.7.2`
 2. run `./vendor/bin/phpunit tests` to run the tests

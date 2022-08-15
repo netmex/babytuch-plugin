@@ -97,6 +97,15 @@ class Functions{
 		    'label_count'               => _n_noop( 'Partially refunded (%s)', 'Partially refunded (%s)' )
 	    ) );
 
+        register_post_status( 'wc-awaiting-return', array(
+            'label'                     => 'awaiting-return',
+            'public'                    => true,
+            'exclude_from_search'       => false,
+            'show_in_admin_all_list'    => true,
+            'show_in_admin_status_list' => true,
+            'label_count'               => _n_noop( 'Awaiting return (%s)', 'Awaiting return (%s)' )
+        ) );
+
     }
 
     function add_new_status_to_order_statuses( $order_statuses ) {
@@ -113,11 +122,12 @@ class Functions{
 
             // insert after completed status
             if ( 'wc-completed' === $key ) {
-                $new_order_statuses['wc-returning'] = 'Rückgesandt';
-	            $new_order_statuses['wc-return-received'] = 'Rücksendung bei Logistik eingetroffen';
+                $new_order_statuses['wc-returning'] = 'Rücksendung angemeldet';
+	            $new_order_statuses['wc-return-received'] = 'RS bei Log eingetroffen';
 	            $new_order_statuses['wc-refund-required'] = 'Wartet auf Rückerstattung';
+                $new_order_statuses['wc-awaiting-return'] = 'Wartet auf Rücksendung';
 	            $new_order_statuses['wc-action-required'] = 'Handlungsbedarf';
-	            $new_order_statuses['wc-replaced'] = 'Teilweise Rückerstattet';
+	            $new_order_statuses['wc-partially-refunded'] = 'Teilweise Rückerstattet';
 	            $new_order_statuses['wc-replaced'] = 'Ersetzt';
             }
 
