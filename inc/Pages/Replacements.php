@@ -21,7 +21,7 @@ class Replacements {
 
             $return_code = $_GET['code'];
             $return_reason = $_POST["reason"];
-            $replaced_product_ids = $_POST["products_to_send_back"];
+            $replaced_product_ids = $_POST["products_to_send_back"] ?: array();
             $replacement_ids = $_POST["replacement_ids"];
             $replacement_sizes = $_POST["replacement_sizes"];
 
@@ -159,6 +159,7 @@ class Replacements {
                         $variation_obj = wc_get_product($variation_id);
                         $size = $variation_obj->get_attributes();
 
+
                         $attachment_ids = $product_obj->get_gallery_image_ids();
                         if($attachment_ids){
                             $img_url = wp_get_attachment_url($attachment_ids[0]);
@@ -179,9 +180,9 @@ class Replacements {
 
                                 </div>
                                 <div class="large-6 columns">
+
                                     <?php echo"
-                                    
-                                    <label for='replacement_ids'>Ersatzprodukt wählen: </label>
+                                    <label for='replacement_ids'>Ersatzprodukt wählen:</label>
                                     <select style='width:250px;' name='replacement_ids[]' id='replacement_ids'>";
                                     $ps = wc_get_products( array(
                                         'numberposts' => -1, // all products
@@ -192,7 +193,8 @@ class Replacements {
                                             $product_single = wc_get_product($pr);
                                             $name = $product_single->get_name();
                                             $id = $product_single->get_id();
-                                            echo "<option value=$id>$name</option>";
+                                            $selected = $product_single->get_id() === $product->get_product_id() ? "selected" : "";
+                                            echo "<option value='$id' $selected>$name</option>";
                                         }
                                     }
                                     echo '</select>';
@@ -208,7 +210,8 @@ class Replacements {
                                         $child_product = wc_get_product($child);
                                         $child_attr = $child_product->get_attributes();
                                         $child_size = $child_attr["groesse"];
-                                        echo "<option style='font-size:25px;' value='$child_size'>$child_size</option>";
+                                        $selected = $size["groesse"] === $child_size ? "selected" : "";
+                                        echo "<option style='font-size:25px;' value='$child_size' $selected>$child_size</option>";
 
                                     }
                                     echo '</select><br>';

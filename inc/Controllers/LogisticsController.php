@@ -181,6 +181,8 @@ class LogisticsController {
             throw new Exception("Bitte wählen Sie mindestens 1 Produkt zum Umtauschen.");
         }
 
+
+
         $return_products = array_map("wc_get_product", $replaced_product_ids);
         $replacement_products = [];
 
