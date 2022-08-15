@@ -197,6 +197,9 @@ class LogisticsController {
             if(!$replacement_variant) {
                 throw new Exception("Es wurde kein Ersatzprodukt mit der Grösse $replacement_size gefunden.");
             }
+            if($replacement_variant->get_id() === intval($replaced_product_id)) {
+                throw new Exception("Ein Produkt kann nicht durch das das gleiche Produkt mit der gleichen Grösse ersetzt werden.");
+            }
             $replacement_products[] = $replacement_variant;
 
         }
@@ -238,6 +241,8 @@ class LogisticsController {
         $replacement_order->set_customer_id($replaced_order->get_customer_id());
         $replacement_order->calculate_totals();
         $replacement_order->set_total(0); // customer does not need to pay for replacement order
+
+        // TODO: introduce new status for this case
         $replacement_order->update_status("on-hold", 'Umtausch Bestellung', TRUE);
 
         // create order process for replacement order
