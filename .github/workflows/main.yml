@@ -24,7 +24,9 @@ jobs:
             ./.github/install-fonts.sh
           shell: bash
         - name: Insert Version Number
-          run: sed -i 's/GITHUB_VERSION/${{github.ref_name}}/' babytuch-plugin.php
+          run: |
+            GITHUB_VERSION="${{github.ref_name}}"
+            sed -i 's/GITHUB_VERSION/${GITHUB_VERSION:1}/' babytuch-plugin.php
         - name: Build archive
           run: composer archive --format=zip --file babytuch-plugin
         - name: Upload Release
