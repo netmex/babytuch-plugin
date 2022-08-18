@@ -6,7 +6,7 @@
 Plugin Name: Babytuch Plugin
 Plugin URI: http://github.com/davebasler
 Description: Backend Logic for the babytuch.ch webshop.
-Version: 1.0.0
+Version: GITHUB_VERSION
 Author: Dave Basler
 Author URI: http://github.com/davebasler
 License: GPLv2 or later

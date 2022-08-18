@@ -23,11 +23,10 @@ jobs:
             chmod +x ./.github/install-fonts.sh
             ./.github/install-fonts.sh
           shell: bash
+        - name: Insert Version Number
+          run: sed -i 's/GITHUB_VERSION/${{github.ref_name}}/' babytuch-plugin.php
         - name: Build archive
           run: composer archive --format=zip --file babytuch-plugin
-          # uses: php-actions/composer@v6
-          # with:
-          #  command: archive --format=zip --file babytuch-plugin
         - name: Upload Release
           uses: ncipollo/release-action@v1
           with:
