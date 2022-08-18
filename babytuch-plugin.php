@@ -1885,29 +1885,3 @@ function babytuch_regular_checks(){
             update_option('products_last_check', date('Y-m-d',time()));
 		}
 }
-
-add_action( 'babytuch_document_checks', 'babytuch_document_checks' );
-function babytuch_document_checks(){
-    /*$referrals_next_generated = get_option('referrals_next_generated');
-    if($referrals_next_generated<date('Y-m-d',time())){  
-        $url = get_home_url().'/wp-admin/admin.php?page=babytuch_referrals';
-        $msg = "Die Abrechnung des Vermittlungsprogramms ist bereit zur Generierung. Bitte folgen Sie dem Link: $url";
-        $babytuch_admin_email = get_option('babytuch_admin_email');
-        wp_mail($babytuch_admin_email, 'Abrechnung Vermittlungsprogramm', $msg);
-    }
-    $billing_next_generated = get_option('billing_next_generated');
-    if($billing_next_generated<date('Y-m-d',time())){  
-        $url = get_home_url().'/wp-admin/admin.php?page=babytuch_billing';
-        $msg = "Die Quartalsabrechnung ist bereit zur Generierung. Bitte folgen Sie dem Link: $url";
-        $babytuch_admin_email = get_option('babytuch_admin_email');
-        wp_mail($babytuch_admin_email, 'Quartalsabrechnung', $msg);
-    }*/
-    $products_next_reorder = get_option('products_next_reorder');
-    if($products_next_reorder<=date('Y-m-d',time())){
-        $url = get_home_url().'/wp-admin/admin.php?page=babytuch_supply_chain';
-        $msg = "Die nächste Überprüfung der Nachbestellungen ist fällig. Bitte folgen Sie dem Link: $url";
-        $babytuch_admin_email = get_option('babytuch_admin_email');
-        wp_mail($babytuch_admin_email, 'Nachbestellungen', $msg);
-    }
-   
-}
