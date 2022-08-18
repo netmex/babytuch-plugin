@@ -26,7 +26,7 @@ jobs:
         - name: Insert Version Number
           run: |
             GITHUB_VERSION="${{github.ref_name}}"
-            sed -i 's/GITHUB_VERSION/${{GITHUB_VERSION:1}}/' babytuch-plugin.php
+            sed -i "s/GITHUB_VERSION/$GITHUB_VERSION/" babytuch-plugin.php
         - name: Build archive
           run: composer archive --format=zip --file babytuch-plugin
         - name: Upload Release
