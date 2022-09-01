@@ -133,11 +133,13 @@ class BT_TestCase extends WP_UnitTestCase {
 
     public function setUp() {
         parent::setUp();
+        $this->reset_mailer();
         add_action("doing_it_wrong_run", [$this, "_wp_doing_it_wrong"]);
    }
 
     public function tearDown() {
         parent::tearDown();
+        $this->reset_mailer();
         remove_action("doing_it_wrong_run", [$this, "_wp_doing_it_wrong"]);
     }
 
@@ -163,7 +165,25 @@ class BT_TestCase extends WP_UnitTestCase {
         return true;
     }
 
+    /**
+     * Reset mailer
+     *
+     * @return bool
+     */
+    protected function reset_mailer(){
+        return reset_phpmailer_instance();
+    }
 
+    /**
+     * Get mock mailer
+     *
+     * Wraps tests_retrieve_phpmailer_instance()
+     *
+     * @return MockPHPMailer
+     */
+    protected function get_mock_mailer(){
+        return tests_retrieve_phpmailer_instance();
+    }
 
 
 }

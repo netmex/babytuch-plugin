@@ -17,7 +17,10 @@ function get_referral_id($user_id) {
  */
 function my_custom_referrals_content() {
 	$referral_id = get_referral_id( get_current_user_id() );
-	$refLink = esc_url(add_query_arg( 'raf', $referral_id, get_home_url() )); 
+	$refLink = esc_url(add_query_arg( 'raf', $referral_id, get_home_url() ));
+
+    // TODO: find out why susi sommer is displayed
+
 	?>
 		<div id="raf-message" class="woocommerce-message"><?php _e( 'Vermittlungsprogramm URL:','gens-raf'); ?> <a href="<?php echo $refLink; ?>" ><?php echo $refLink; ?></a></div>
 	<?php

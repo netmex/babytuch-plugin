@@ -109,8 +109,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
                         <td style="text-align: center;"></td>
                         </tr><?php
                     }
-                   
-                    
+
                 }
                 if($count != 0) {
                     $user_fn = $user->first_name;
@@ -368,6 +367,7 @@ if ( ! current_user_can( 'manage_options' ) ) {
                 //var_dump($fin_date>$today);
                 if($reffered_who_order_id){
                     $order = wc_get_order((int)$reffered_who_order_id);
+                    if(!$order) { continue; }
                     $order_status = $order->get_status();
                     if($order_status=='returning' or $fin_date>=$today){
                         $checks=false;
@@ -598,21 +598,24 @@ function get_all_data(){
             $transaction_complete = get_post_meta($coupon->ID, "transaction_complete" ,true);
             $customer_email = get_post_meta($coupon->ID,"customer_email",true);
             $reffered_who_order_id = get_post_meta($coupon->ID, "reffered_who_order_id" ,true);
-                $return_days_limit = get_option('return_days_limit');
-                $fin_date = date('Y-m-d',strtotime($creation_date. " + $return_days_limit days"));
-                $today = date('Y-m-d');
-                //var_dump($fin_date>$today);
-                if($reffered_who_order_id){
-                    $order = wc_get_order((int)$reffered_who_order_id);
-                    $order_status = $order->get_status();
-                    if($order_status=='returning' or $fin_date>=$today){
-                        $checks=false;
-                    }else{
-                        $checks=true;
-                    }
-                }else{
+            $return_days_limit = get_option('return_days_limit');
+            $fin_date = date('Y-m-d',strtotime($creation_date. " + $return_days_limit days"));
+            $today = date('Y-m-d');
+            //var_dump($fin_date>$today);
+            if($reffered_who_order_id){
+                $order = wc_get_order((int)$reffered_who_order_id);
+                if(!$order) {
+                    continue;
+                }
+                $order_status = $order->get_status();
+                if($order_status=='returning' or $fin_date>=$today){
+                    $checks=false;
+                } else {
                     $checks=true;
                 }
+            } else {
+                $checks=true;
+            }
             
             if(!$transaction_complete and $checks){
                 $count++;
@@ -665,8 +668,6 @@ function create_billing_document($data){
     $home_url_full = get_home_url();
     $home_url = substr($home_url_full, 7);
 	
-    $home_path = get_home_path();
-    require_once($home_path.'/wp-content/plugins/babytuch-plugin/assets/TCPDF-master/tcpdf.php');
 
     // create new PDF document
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, 'mm', 'A4', true, 'UTF-8', false);

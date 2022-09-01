@@ -13,9 +13,6 @@ $wc_version    = getenv('WC_VERSION') ?: '5.5';
 $target_suffix = preg_match( '/\d+\.\d+/', $wc_version, $match ) ? $match[0] : 'latest';
 $target_dir    = dirname( __DIR__ ) . '/vendor/woocommerce/woocommerce-src-' . $target_suffix;
 
-// Determine where to load the sqrip plugin from
-// assumes that sqrip is in a folder next to this plugin (e.g. the wp plugins folder)
-$sqrip_file    = dirname(__DIR__, 2) . '/sqrip-swiss-qr-invoice/sqrip-woocommerce.php';
 
 // Attempt to install the given version of WooCommerce if it doesn't already exist.
 if ( ! is_dir( $target_dir ) ) {
@@ -69,6 +66,17 @@ require_once $_tests_dir . '/includes/functions.php';
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
+
+    $required_plugins = [
+        'sqrip-swiss-qr-invoice/sqrip-woocommerce.php',
+        'refer-a-friend-babytuch_customized/gens-raf.php'
+    ];
+
+    // assumes that they are in a folder next to this plugin (e.g. the wp plugins folder)
+    foreach($required_plugins as $plugin) {
+        require_once dirname(__DIR__, 2) . '/' . $plugin;
+    }
+
 	require dirname( dirname( __FILE__ ) ) . '/babytuch-plugin.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
@@ -77,16 +85,12 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 require_once $_bootstrap;
 
-// Include sqrip
-require_once $sqrip_file;
 
 
-// Activate sqrip plugin
-tests_add_filter('option_active_plugins', function($activePlugins) {
+// Activate required plugins
+tests_add_filter('option_active_plugins', function($activePlugins) use ($required_plugins) {
 	return array_unique(
-		array_merge([
-			'sqrip-swiss-qr-invoice/sqrip-woocommerce.php',
-		], $activePlugins ?: [])
+		array_merge($required_plugins, $activePlugins ?: [])
 	);
 });
 

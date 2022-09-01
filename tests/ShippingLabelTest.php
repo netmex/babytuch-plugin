@@ -72,17 +72,30 @@ class ShippingLabelTest extends BT_TestCase {
 		$order->calculate_totals();
 		$order->update_status("processing", '', TRUE);
 
-		$email = tests_retrieve_phpmailer_instance()->get_sent();
+        // Multiple e-mails are sent
+        // 0 -> Dein Babytuch Konto wurde erstellt
+        // 1 -> Logistics Information
+        $email = tests_retrieve_phpmailer_instance()->get_sent(1);
+
 		$body = $email->body;
 
 		// reload order to see changes in effect
 		$order = new WC_Order($order->get_id());
 
-		$this->assertContains('Content-Type: application/pdf;', $body);
 		$this->assertContains('Content-Disposition: attachment', $body);
-		$logistic_info_sent = $order->get_meta('_babytuch_logistic_information_sent');
 
-		// TODO: assert that all three pdfs are attached
+        // check shipping label is attached
+        $shipping_label_path = $order->get_meta(Shipping::$shipping_label_path_key);
+        $shipping_label_filename = basename($shipping_label_path);
+        $this->assertContains("Content-Type: application/pdf; name=$shipping_label_filename", $body);
+
+        // check return label is attached
+        $return_label_path = $order->get_meta(Shipping::$return_label_path_key);
+        $return_label_filename = basename($return_label_path);
+
+        $this->assertContains("Content-Type: application/pdf; name=$return_label_filename", $body);
+
+        $logistic_info_sent = $order->get_meta('_babytuch_logistic_information_sent');
 
 		$this->assertNotEmpty($logistic_info_sent);
 

@@ -37,5 +37,8 @@ Tagging a new version on GitHub will automatically trigger a new build.
 - **Replaced:** Ware wurde ersetzt (neue Bestellung ausgelöst) [Custom]
 
 # Testing
-1. run `tests/bin/install-wp-tests.sh <db-name> <db-user> <db-pass>` e.g: `tests/bin/install-wp-tests.sh wordpress_test root "" 127.0.0.1 5.7.2`
-2. run `./vendor/bin/phpunit tests` to run the tests
+1. Run `composer install`
+2. Make sure you have MySQL installed in the CLI (check with running `mysql`)
+3. Create MySQL db called `wordpress_test`
+4. run `tests/bin/install-wp-tests.sh <db-name> <db-user> <db-pass>` e.g: `tests/bin/install-wp-tests.sh wordpress_test root "" 127.0.0.1 5.7.2`
+5. run `./vendor/bin/phpunit tests` to run the tests

@@ -11,6 +11,11 @@ use Spatie\PdfToText\Pdf;
  */
 class ReferralTest extends BT_TestCase {
 
+    public function test_plugin_activated() {
+        $plugins = get_option('active_plugins');
+        $this->assertContains('refer-a-friend-babytuch_customized/gens-raf.php', $plugins);
+    }
+
 
     /**
      * A single example test.
@@ -69,10 +74,12 @@ class ReferralTest extends BT_TestCase {
 
     public function test_referral_code_is_generated_for_guest_with_existing_user() {
 
+        // user checks-out as guest but has existing user account with same e-mail
+
         // create new user with email as username & newly created pw
         $user_id = wp_create_user( $this->customerAddress['email'], 1234, $this->customerAddress['email'] );
 
-        //WC guest customer identification
+        // WC guest customer identification
         update_user_meta( $user_id, 'guest', 'yes' );
 
         //user's billing data
@@ -131,7 +138,44 @@ class ReferralTest extends BT_TestCase {
         $referral_cards_path = $order->get_meta(Shipping::$referral_cards_path_key);
         $filename = basename($referral_cards_path);
 
+
         $this->assertContains("Content-Type: application/pdf; name=$filename", $body);
+        $this->assertContains("Content-Disposition: attachment; filename=$filename", $body);
+    }
+
+
+
+    public function test_new_order_with_referral_code_cookie() {
+
+        // create new user with email as username & newly created pw
+        $user_id = wp_create_user( $this->customerAddress['email'], 1234, $this->customerAddress['email'] );
+
+        $raf_id = get_user_meta($user_id, 'gens_referral_id', true);
+
+        // set cookie with raf_id
+        $_COOKIE["gens_raf"] = $raf_id;
+
+        $checkout = new WC_Checkout();
+        $order_id = $checkout->create_order([]);
+        $order = wc_get_order($order_id);
+        $order->add_product( self::$variation, 2);
+        $order->set_address( $this->customerAddress, 'billing' );
+        $order->calculate_totals();
+        $order->save();
+
+        //do_action( 'woocommerce_checkout_update_order_meta', $order->get_id(), []);
+
+        $order->update_status("processing", '', TRUE);
+
+        global $wp_actions;
+
+        // reload order to see changes in effect
+        $order = new WC_Order($order->get_id());
+
+        // referral code used should be stored in `_raf_id` meta field of order
+        $referral_id = $order->get_meta('_raf_id');
+
+        $this->assertEquals($raf_id, $referral_id);
 
     }
 
