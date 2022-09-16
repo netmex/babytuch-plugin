@@ -49,6 +49,14 @@ class BT_OrderProcess extends Entity {
 	 */
 	protected string  $return_code;
 
+    /**
+     * 1. $return_activated = true // return process for this order was activated
+     * 2. $return_received_admin_activated = true // return order was acknowledged by logistics
+     * 3. $return_control_started = true // logistics starts the controlling of the packet
+     * 4. $return_received_activated = // logistics controlled the content of the package
+     */
+
+
 	/**
 	 * @var bool    Whether the return process for this order was activated
      *              (after the return_code is scanned for the first time by the customer).

@@ -356,10 +356,10 @@ class LogisticsController {
                     um diese danach zum Erhalt aktivieren zu können.");
 		}
 		if(!$this->order_process->isReturnReceivedAdminActivated()) {
-			throw new Exception("Der Eingang dieser Rücksendung (Bst. Nr: $order_id) wurde noch nicht bestätigt.");
+			throw new Exception("Der Eingang dieses Rücksendungsauftrags (Bst. Nr: $order_id) wurde noch nicht bestätigt.");
 		}
 		if($this->order_process->isReturnReceivedActivated()) {
-			throw new Exception("Diese Rücksendung (Bst. Nr: $order_id) wurde bereits ontrolliert und eingebucht.");
+			throw new Exception("Diese Rücksendung (Bst. Nr: $order_id) wurde bereits kontrolliert und eingebucht.");
 		}
 		if($this->order_process->isReturnControlStarted()) {
 			throw new Exception("Die Kontrolle dieser Rücksendung (Bst. Nr: $order_id) wurde bereits gestartet.");

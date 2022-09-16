@@ -50,7 +50,7 @@ class ReturnsAndReplacements
 		        $controller = LogisticsController::create_from_return_code( $return_code );
 		        $order_process = $controller->getOrderProcess();
 
-		        if($order_process->isReturnActivated() && $order_process->isReturnReceivedAdminActivated() && !$order_process->isReturnReceivedActivated()) {
+		        if($order_process->isReturnActivated()) {
 		            $controller->start_return_control();
 			        $order = $order_process->getOrder();
 			        $address = Helpers::getShippingAddressFromOrder($order);
