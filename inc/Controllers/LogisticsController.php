@@ -356,7 +356,7 @@ class LogisticsController {
                     um diese danach zum Erhalt aktivieren zu können.");
 		}
 		if(!$this->order_process->isReturnReceivedAdminActivated()) {
-			throw new Exception("Der Eingang dieses Rücksendungsauftrags (Bst. Nr: $order_id) wurde noch nicht bestätigt.");
+			throw new Exception("Der Eingang dieses Rücksendungsauftrags (Bst. Nr: $order_id) wurde noch nicht bestätigt. Bitte scannen Sie zunächst den QR-Code oben rechts auf dem Rücksendungsauftrag und erst anschliessend den QR-Code auf dem Paket.");
 		}
 		if($this->order_process->isReturnReceivedActivated()) {
 			throw new Exception("Diese Rücksendung (Bst. Nr: $order_id) wurde bereits kontrolliert und eingebucht.");
