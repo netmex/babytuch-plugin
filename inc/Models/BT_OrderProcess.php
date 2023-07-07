@@ -397,11 +397,66 @@ class BT_OrderProcess extends Entity {
 	}
 
 	/**
+     * Whether the order was refunded
 	 * @return bool
 	 */
 	public function isRefunded(): bool {
 		return $this->refunded;
 	}
+
+    /**
+     * Whether the order is currently being replaced
+     * @return bool
+     */
+    public function isReplacing(): bool {
+        return $this->replace_activated;
+        //return $this->getOrder()->get_status() === 'replaced';
+    }
+    /**
+     * Whether the order is currently being refunded
+     * @return bool
+     */
+    public function isRefunding(): bool {
+        return $this->return_activated && !$this->isReplacing();
+        //return $this->getOrder()->get_status() === 'refunded';
+    }
+
+    public function isFullyRefunding(): bool {
+        if($this->isRefunding()) {
+            return $this->getReturnProductsCount() == $this->getOrder()->get_item_count();
+        }
+        return false;
+    }
+
+
+
+    public function isPartiallyRefunding(): bool {
+        // TODO: write test
+        if($this->isRefunding()) {
+            return $this->getReturnProductsCount() < $this->getOrder()->get_item_count();
+        }
+        return false;
+        //return $this->getOrder()->get_status() === 'partially-refunded';
+    }
+
+    public function getReturnProductsCount(): int {
+        return count($this->getReturnProductsIds());
+    }
+
+    public function isFullyReplacing(): bool {
+        // TODO: write test
+        if($this->isReplacing()) {
+            return $this->getReturnProductsCount() == $this->getOrder()->get_item_count();
+        }
+        return false;
+    }
+    public function isPartiallyReplacing(): bool {
+        // TODO: write test
+        if($this->isReplacing()) {
+            return $this->getReturnProductsCount() < $this->getOrder()->get_item_count();
+        }
+        return false;
+    }
 
 	/**
 	 * @return bool
@@ -566,7 +621,7 @@ class BT_OrderProcess extends Entity {
 	 * @param bool  $return_received_admin_activated
 	 */
 	public function setReturnReceivedAdminActivated( bool $return_received_admin_activated): void {
-		$this->return_received_admin_activated = $return_received_admin_activated;
+        $this->return_received_admin_activated = $return_received_admin_activated;
 	}
 
 	/**

@@ -21,6 +21,7 @@ final class Init
 			Base\Payments::class,
 			Base\Shipping::class,
 			Base\Returns::class,
+            Base\Referrals::class,
 			Base\Mailer::class,
 			Pages\OrderProcessing::class,
 			Pages\OrderSending::class,

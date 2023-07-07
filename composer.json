@@ -53,5 +53,10 @@
             "*.lst",
             "*.yml"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "automattic/jetpack-autoloader": true
+        }
     }
 }

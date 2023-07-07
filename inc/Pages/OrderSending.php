@@ -26,10 +26,13 @@ class OrderSending
 	        try {
 		        $controller = LogisticsController::create_from_sent_code( $sent_code );
 		        $controller->finish_processing_order();
-		        echo "<h3>Der Verpackungsprozess für die Bestellung wurde erfolgreich abgeschlossen.</h3>";
+                $controller->renderLogisticsOrderProcess();
+                echo "<h3>Der Verpackungsprozess für die Bestellung wurde erfolgreich abgeschlossen.</h3>";
 		        echo "<h4>Die Bestellung kann nun verschickt werden.</h4>";
 	        } catch ( \Exception $e ) {
 		        ?>
+                <?php $controller = LogisticsController::create_from_sent_code( $sent_code ); ?>
+                <?php $controller->renderLogisticsOrderProcess(); ?>
                 <h3>Es gab ein Problem</h3>
                 <h4><?php echo $e->getMessage(); ?></h4>
 		        <?php

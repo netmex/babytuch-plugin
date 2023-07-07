@@ -135,4 +135,19 @@ class ReferralTest extends BT_TestCase {
 
     }
 
+
+    // TODO: bestellung mit dem vermittlungscode
+    // - vermittlungscode bei bestellung vermerken
+    // - wenn bestellung abgeschlossen und ausserhalb von retouren-frist, dann anzeigen als "gültige" vermittlung
+    // -
+
+
+    // TODO: test that referral gets created when order is placed
+
+    // TODO: test that no two referrals can exist for same order
+
+    // TODO: test that user cannot refer themselves
+
+    // TODO: test that amount is calculated correctly
+
 }

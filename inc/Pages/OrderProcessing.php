@@ -27,10 +27,13 @@ class OrderProcessing
 	        try {
 		        $controller = LogisticsController::create_from_processing_code( $processing_code );
 		        $controller->start_processing_order();
-		        echo "<h3>Der Verpackungsprozess für die Bestellung wurde erfolgreich gestartet.</h3>";
+                $controller->renderLogisticsOrderProcess();
+                echo "<h3>Der Verpackungsprozess für die Bestellung wurde erfolgreich gestartet.</h3>";
 		        echo "<h4>Sie können die Bestellung nun verpacken.</h4>";
 	        } catch ( \Exception $e ) {
 		        ?>
+                <?php $controller = LogisticsController::create_from_processing_code( $processing_code ); ?>
+                <?php $controller->renderLogisticsOrderProcess(); ?>
                 <h3>Es gab ein Problem</h3>
                 <h4><?php echo $e->getMessage(); ?></h4>
 		        <?php

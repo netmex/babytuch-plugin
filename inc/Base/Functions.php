@@ -5,6 +5,8 @@
 namespace Inc\Base;
 
 
+use Inc\Models\BT_OrderProcess;
+
 class Functions{
     public function register(){
         require_once( ABSPATH . 'wp-includes/option.php' );
@@ -17,6 +19,22 @@ class Functions{
         add_action('update_option_packaging_big_amount',[$this,'sync_db_supplements'], 10, 2);
         add_action( 'init', [$this, 'register_new_order_status'] );
         add_filter( 'wc_order_statuses', [$this, 'add_new_status_to_order_statuses'] );
+
+        // ensures an order process is stored in the DB when a new order is created
+        add_action('woocommerce_new_order', [$this, 'create_order_process'], 10, 1);
+
+    }
+
+    /**
+     * Creates a new OrderProcess based on an existing order
+     * @param $order_id
+     * @return void
+     */
+    public function create_order_process($order_id) {
+        if(!$order_id) return;
+        $order = wc_get_order($order_id);
+        BT_OrderProcess::create_from_order($order);
+
     }
 
     //BEILAGEN DB-SYNCS

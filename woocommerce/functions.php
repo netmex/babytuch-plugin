@@ -3,7 +3,6 @@
 // If this file is called directly, abort!!!
 defined( 'ABSPATH' ) or die( 'Hey, what are you doing here? You silly human!' );
 
-require_once dirname( __FILE__ ) . '/account-referrals.php';
 
 /**
  * Register new endpoint to use inside WooCommerce's My Account page.

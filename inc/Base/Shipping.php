@@ -45,7 +45,7 @@ class Shipping extends BaseController {
 	private QRCodeGenerator $qr_code_generator;
 
 	public function register() {
-		add_action( 'woocommerce_order_status_processing', [$this, 'initiate_shipping'] );
+		add_action( 'woocommerce_order_status_processing', [$this, 'initiate_shipping'], 15 );
 		// add our own item to the order actions meta box
 		add_action( 'woocommerce_order_actions', [$this, 'add_order_meta_box_actions'] );
 		add_action( 'woocommerce_order_action_babytuch_regenerate_logistic_information', array( $this, 'regenerate_logistic_information' ) );
@@ -166,7 +166,7 @@ class Shipping extends BaseController {
 
 		$attachments = [
 			$paths['logistic_labels']['path'],
-			//$paths['referral_cards']['path'],
+			$paths['referral_cards']['path'],
 			$paths['logistic_order']['path']
 		];
 
@@ -274,11 +274,11 @@ class Shipping extends BaseController {
 
 		$order_id = $order->get_id();
 
-		$user_id = $order->get_user_id();
-		$raf_code = '404';
+		$user_id = $order->get_user_id(); // will always be true because a guest account is created
+		$raf_code = '404'; // TODO: load default RAF code
 
 		if($user_id) {
-			$raf_code = get_user_meta($user_id, 'gens_referral_id') ?: '404';
+			$raf_code = get_user_meta($user_id, 'gens_referral_id', true) ?: '404';
 			// TODO: what should we do if user is not found??
 		}
 
@@ -289,7 +289,7 @@ class Shipping extends BaseController {
 
 		$logistic_labels = $this->create_logistic_labels($return_label_path, $shipping_label_path, $order_process);
 
-		$referral_cards = $this->create_referral_cards($customer_address->getFullName(), $raf_code, $order_process);
+ 		$referral_cards = $this->create_referral_cards($customer_address->getFullName(), $raf_code, $order_process);
 
 		$logistic_order = $this->create_logistic_order($order, $order_process);
 
@@ -426,39 +426,6 @@ class Shipping extends BaseController {
 		$pdf->SetFooterMargin(0);
 		$pdf->SetAutoPageBreak(false);
 
-
-		/*$order_wc = wc_get_order($order_id);
-		//$customer_id=$order->get_customer_id('view');
-		$customer_email = $order_wc->get_billing_email('view');
-		$table_name = $wpdb->prefix . 'wc_customer_lookup';
-		$user_id = $wpdb->get_results(
-			$wpdb->prepare( "
-         SELECT * FROM $table_name
-         WHERE email = %s",
-				$customer_email
-			)
-		);
-
-		$user_id_json = json_decode(json_encode($user_id), true);
-		$id=$user_id_json[0]["user_id"];
-		if($id==NULL and count($user_id_json)>1){
-			$id=$user_id_json[1]["user_id"];
-		}
-
-		if($id!=NULL){
-			$table_name2 = $wpdb->prefix . 'usermeta';
-			$ref_id = $wpdb->get_results(
-				$wpdb->prepare( "
-                SELECT meta_value FROM $table_name2
-                WHERE user_id = %s AND meta_key='gens_referral_id'",
-					$id
-				)
-			);
-			$ref_id_json = json_decode(json_encode($ref_id), true);
-			$raf_code = $ref_id_json[0]["meta_value"];
-		}else{
-			$raf_code = '404';
-		}*/
 
 		for($row=0;$row < $rows; $row++) {
 			for($col=0;$col < $cols; $col++) {

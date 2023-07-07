@@ -4,6 +4,7 @@ namespace Inc\Controllers;
 
 use Exception;
 use Inc\Api\Helpers;
+use inc\Base\Referrals;
 use Inc\Mails\ReplaceMail;
 use Inc\Models\BT_OrderProcess;
 use WC_Order;
@@ -113,7 +114,7 @@ class LogisticsController {
 
 		$this->order_process->setProcessingActivated(true);
 		$this->order_process->save();
-		$order->update_status('packing');
+		$order->update_status('packing', 'Logistik hat den Verpackungsprozess gestartet.');
 
 	}
 
@@ -138,7 +139,7 @@ class LogisticsController {
 		$this->order_process->setDateDelivered($date);
 		$this->order_process->save();
 
-		$order->update_status('completed');
+		$order->update_status('completed','Logistik hat den Verpackungsprozess abgeschlossen.');
 	}
 
 	/**
@@ -236,13 +237,19 @@ class LogisticsController {
             $replacement_order->add_product( $replacement_product);
         }
 
+        // set referral code on new order
+        // TODO: write test that tests this
+        Referrals::copy_raf_id($replaced_order, $replacement_order);
+
         $replacement_order->set_address($replaced_order->get_address('billing'), 'billing');
         $replacement_order->set_address($replaced_order->get_address('shipping'), 'shipping');
         $replacement_order->set_customer_id($replaced_order->get_customer_id());
         $replacement_order->calculate_totals();
         $replacement_order->set_total(0); // customer does not need to pay for replacement order
 
-        $replacement_order->update_status("awaiting-return", 'Ersatzbestellung wartet auf Rücksendung der Originalbestellung', TRUE);
+        $replacement_order->update_status("awaiting-return", 'Ersatzbestellung wartet auf Rücksendung der Originalbestellung');
+
+
 
         // create order process for replacement order
         $order_process = BT_OrderProcess::load_by_order_id($replacement_order->get_id());
@@ -368,7 +375,7 @@ class LogisticsController {
 		// TODO: throw error if order ID does not match with the one that was scanned last
 
 		$this->order_process->setReturnControlStarted(true);
-
+        $order->add_order_note("Logistik hat Erhalt der Rücksendung bestätigt.");
 		if($this->order_process->isReplacementOrder()) {
 			$cost = $this->order_process->getCostOfSending();
 			$new_cost = round((float)$cost*(2/3),2);
@@ -459,7 +466,9 @@ class LogisticsController {
 
 		$this->order_process->setReturnReceivedActivated(true);
 		$this->order_process->save();
+        $order->add_order_note("Logistik hat Inhalt der Rücksendung kontrolliert.");
 
+        do_action('babytuch_return_end', $this->order_process);
 
 	}
 
@@ -534,5 +543,64 @@ class LogisticsController {
 	public function getOrderProcess(): BT_OrderProcess {
 		return $this->order_process;
 	}
+
+
+    public function renderLogisticsOrderProcess() {
+        $order = $this->order_process->getOrder();
+        $status = $order->get_status();
+
+        $statuses = array(
+            'pending' => "Bestellung wurde erfasst",
+            'processing' => "Auftrag erstellt",
+            'packing' => "Auftrag entgegengenommen",
+            'completed' => "Auftrag abgeschlossen",
+        );
+
+        echo '<nav>';
+        echo '<ol class="cd-multi-steps text-bottom count">';
+        $index = 0;
+        foreach($statuses as $stat => $text) {
+
+            if($stat == $status) {
+                echo '<li class="current"><strong>'.($index+1).'. '.$text.'</strong></li>';
+            } else {
+                echo '<li><em>'.($index+1).'. '.$text.'</em></li>';
+            }
+            if($index < count($statuses)-1) {
+                echo "<span class='hidden-mobile'>→</span>";
+            }
+            $index++;
+        }
+		echo '</ol>';
+	echo '</nav>';
+    }
+
+    public function renderLogisticsReturnProcess() {
+        $order = $this->order_process->getOrder();
+        $status = $order->get_status();
+
+        $statuses = array(
+            'returning' => "Ware wird zurückgeschickt",
+            'return-received' => "Rücksendung erhalten",
+            'packing' => "Auftrag entgegengenommen",
+            'completed' => "Auftrag abgeschlossen",
+        );
+
+        echo '<nav>';
+        echo '<ol class="cd-multi-steps text-bottom count">';
+        $index = 0;
+        foreach($statuses as $stat => $text) {
+
+            if($stat == $status) {
+                echo '<li class="current"><strong>'.($index+1).'. '.$text.'</strong></li>';
+            } else {
+                echo '<li><em>'.($index+1).'. '.$text.'</em></li>';
+            }
+            if($index < count($statuses)-1) {
+                echo "<span class='hidden-mobile'>→</span>";
+            }
+            $index++;
+        }
+    }
 
 }

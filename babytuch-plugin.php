@@ -24,13 +24,29 @@ define( 'BABYTUCH_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BABYTUCH_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 // will force TCPDF to throw exceptions
-define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
+if (!defined('K_TCPDF_THROW_EXCEPTION_ERROR')) define('K_TCPDF_THROW_EXCEPTION_ERROR', true);
 
 
 // Require once the Composer Autoload
 if ( file_exists( dirname( __FILE__ ) . '/vendor/autoload.php' ) ) {
 	require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 }
+
+// Define path and URL to the ACF plugin.
+define( 'MY_ACF_PATH', plugin_dir_path( __FILE__ ) . '/inc/acf/' );
+define( 'MY_ACF_URL', plugin_dir_url( __FILE__ ) . '/inc/acf/' );
+
+// Include the ACF plugin.
+include_once( MY_ACF_PATH . 'acf.php' );
+
+// Customize the url setting to fix incorrect asset URLs.
+add_filter('acf/settings/url', 'my_acf_settings_url');
+function my_acf_settings_url( $url ) {
+    return MY_ACF_URL;
+}
+
+// (Optional) Hide the ACF admin menu item.
+//add_filter('acf/settings/show_admin', '__return_false');
 
 /**
 * Load WooCommerce Customizations
@@ -377,7 +393,6 @@ function new_product($name){
 add_action( 'woocommerce_update_product', 'mp_sync_on_product_save', 10, 1 );
 
 
-# woocommerce_payment_complete_order_status after order was paid
 
 function new_order_database_entry( $order_id ) { 
 	if(!$order_id) return;
@@ -387,104 +402,6 @@ function new_order_database_entry( $order_id ) {
     if(!BT_OrderProcess::load_by_order_id($order_id)) {
         $order_process = BT_OrderProcess::create_from_order($order);
     }
-
-
-	//GUEST KONTO
-	$order = wc_get_order($order_id);
-	$order_email = $order->get_billing_email();
-	  
-	$email = email_exists( $order_email );  
-	$user = username_exists( $order_email );
-	
-	if( $user == false && $email == false ){
-	  
-	  // random password with 12 chars
-	  $random_password = wp_generate_password();
-	  
-	  // create new user with email as username & newly created pw
-	  $user_id = wp_create_user( $order_email, $random_password, $order_email );
-	  
-	  //WC guest customer identification
-	  update_user_meta( $user_id, 'guest', 'yes' );
-   
-	  //user's billing data
-	  update_user_meta( $user_id, 'billing_address_1', $order->get_billing_address_1() );
-	  update_user_meta( $user_id, 'billing_address_2', $order->get_billing_address_2() );
-	  update_user_meta( $user_id, 'billing_city', $order->get_billing_city() );
-	  update_user_meta( $user_id, 'billing_company', $order->get_billing_company() );
-	  update_user_meta( $user_id, 'billing_country', $order->get_billing_country() );
-	  update_user_meta( $user_id, 'billing_email', $order->get_billing_email() );
-	  update_user_meta( $user_id, 'billing_first_name', $order->get_billing_first_name() );
-	  update_user_meta( $user_id, 'billing_last_name', $order->get_billing_last_name());
-	  update_user_meta( $user_id, 'billing_phone', $order->get_billing_phone() );
-	  update_user_meta( $user_id, 'billing_postcode', $order->get_billing_phone() );
-	  update_user_meta( $user_id, 'billing_state', $order->get_billing_state() );
-   
-	  // user's shipping data
-	  update_user_meta( $user_id, 'shipping_address_1', $order->get_shipping_address_1() );
-	  update_user_meta( $user_id, 'shipping_address_2', $order->get_shipping_address_2() );
-	  update_user_meta( $user_id, 'shipping_city', $order->get_shipping_city() );
-	  update_user_meta( $user_id, 'shipping_company', $order->get_shipping_company() );
-	  update_user_meta( $user_id, 'shipping_country', $order->get_shipping_country());
-	  update_user_meta( $user_id, 'shipping_first_name', $order->get_shipping_first_name() );
-	  update_user_meta( $user_id, 'shipping_last_name', $order->get_shipping_last_name() );
-	  update_user_meta( $user_id, 'shipping_method', $order->get_shipping_method());
-	  update_user_meta( $user_id, 'shipping_postcode', $order->get_shipping_postcode());
-      update_user_meta( $user_id, 'shipping_state', $order->get_shipping_state() );
-      
-      update_user_meta( $user_id, 'first_name', $order->get_billing_first_name() );
-	  update_user_meta( $user_id, 'last_name', $order->get_billing_last_name());
-
-	  //RAF Generate Code
-	  $referralID = generate_referral_id();
-	  update_user_meta( $user_id, 'gens_referral_id', $referralID );
-	  
-	  // link past orders to this newly created customer
-	  wc_update_new_customer_past_orders( $user_id );
-	  /*$url = 'http://localhost/wp_test_ecom/mein-konto/edit-account/';
-	  wp_mail($order_email, 'Neues Konto', "Ihnen wurde erfolgreich ein neues Benutzerkonto erstellt.
-	  Sie können sich mit den folgenden Anmeldedaten anmelden und ein neues Passwort erstellen:
-	  Username: $order_email Passwort: $random_password
-	  $url");*/
-
-	//EMAIL TO CLIENT
-	global $woocommerce, $wpdb;
-	$mailer = $woocommerce->mailer();
-
-	$user_fname = $order->get_billing_first_name();
-	$url= get_home_url().'/mein-konto/';
-	$faq_link = get_home_url()."/so-funktionierts/faq/";
-	
-	$user_message = "Hallo $user_fname,<br><br>  Schön, dass wir dich zu unseren Kunden und/oder Vermittler zählen dürfen. Dein Konto auf babytuch.ch wurde erstellt. Du kannst über diese Adresse darauf zugreifen: $url <br><br>";
-	$user_message .="Der Benutzername lautet $order_email <br>";
-	$user_message .="Dein Passwort lautet $random_password  <br><br>";
-	$user_message .="Du benötigst das Konto für diese Aktionen: <br>
-	- Bestellungen verfolgen <br>
-	- Tragtücher umtauschen <br>
-	- Rücksendungen avisieren und verfolgen <br>
-	- Rückerstattungen und Vermittlungsprovisionen einsehen <br><br>
-	";
-	$user_message .="Solltest du Unterstützung benötigen, findest du die meisten Antworten hier $faq_link
-	<br><br>";
-	$user_message .="Du kannst dein Konto jederzeit löschen. Damit erlischt aber jeglicher Anspruch auf die obenstehenden Leistungen.
-	<br><br>";
-	$user_message .="Liebe Grüsse <br>
-	Neva von babytuch.ch
-	<br>";
-		$subject = " Dein babytuch.ch-Konto wurde erstellt";
-
-	
-	ob_start();
-	wc_get_template( 'emails/email-header.php', array( 'email_heading' => 'Willkommen auf babytuch.ch' ) );
-	echo str_replace( '{{name}}', $user_fname, $user_message );
-	wc_get_template( 'emails/email-footer.php' );
-	$message = ob_get_clean();
-	// Debug wp_die($user_email);
-	$mailer->send( $order_email, $subject, $message);
-	}
-
-	
-	
 }; 
 add_action( 'woocommerce_new_order', 'new_order_database_entry' );
 
@@ -501,31 +418,6 @@ function generate_code($order_id){
 	} 
 	$pass = $pass . $order_id;
 	return $pass;
-}
-
-//CREATE RAF URL AFTER MANUAL ACCOUNT CREATION
-add_action( 'user_register', 'babytuch_registration_save', 10, 1 );
-
-function babytuch_registration_save( $user_id ) {
-
-    $referralID = generate_referral_id();
-	update_user_meta( $user_id, 'gens_referral_id', $referralID );
-      
-
-}
-
-/**
- * Generate a new Referral ID
- *
- *
- */
-function generate_referral_id($randomString="ref")
-{
-    $characters = "0123456789";
-    for ($i = 0; $i < 7; $i++) {
-        $randomString .= $characters[rand(0, strlen($characters) - 1)];
-    }
-    return $randomString;
 }
 
 

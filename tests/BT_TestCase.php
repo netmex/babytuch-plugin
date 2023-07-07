@@ -1,6 +1,9 @@
 <?php
 
+
 class BT_TestCase extends WP_UnitTestCase {
+
+
 
 	private static bool $ready = false;
 	protected static WC_Product $product;

@@ -19,7 +19,7 @@ class Returns extends BaseController {
 		add_action('babytuch_return_start', [$this, 'create_return_information'], 10, 2);
 
 		//add_action( 'woocommerce_order_status_refunded', [$this, 'initiate_refund'], 10, 1);
-		add_action( 'woocommerce_order_partially_refunded', [$this, 'initiate_refund'], 10, 1);
+		add_action( 'woocommerce_order_partially_refunded', [$this, 'initiate_partial_refund'], 10, 1);
 		add_action( 'woocommerce_order_fully_refunded', [$this, 'initiate_full_refund'], 10, 1);
 
 		add_filter('woocommerce_can_restock_refunded_items', [$this, 'can_restock_refunded_items'], 10, 3);
@@ -94,10 +94,10 @@ class Returns extends BaseController {
             echo '<hr>';
 
             if($order_process->isReplaceActivated()) {
-                echo '<div><strong>Ersatz gewünscht:</strong> '.($order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
+                echo '<div><strong>Ersatz gewünscht:</strong> Ja - '.($order_process->isFullyReplacing() ? "Vollständig" : "Teilweise").'</div>';
                 echo '<div><strong>Ersatzbestellung:</strong> <a href="'.get_edit_post_link($order_process->getReplacementOrderId()).'" target="_blank">'.($order_process->getReplacementOrderId()).'</a></div>';
             } else {
-                echo '<div><strong>Rückerstattung gewünscht:</strong> '.(!$order_process->isReplaceActivated() ? "Ja" : "Nein").'</div>';
+                echo '<div><strong>Rückerstattung gewünscht:</strong> Ja - '.($order_process->isFullyRefunding() ? "Vollständig" : "Teilweise").'</div>';
                 echo '<div><strong>Betrag für Rückerstattung:</strong> CHF '.($order_process->getTotalPrice()).'</div>';
                 echo '<div><strong>IBAN bekannt:</strong> '.($iban ? "Ja" : "Nein").'</div>';
                 echo '<div><strong>Rückerstattet:</strong> '.($order_process->isRefunded() ? "Ja" : "Nein").'</div>';
