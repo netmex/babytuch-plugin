@@ -275,7 +275,7 @@ class Referrals
     }
 
     /**
-     * Creates a user account for the guest when an order is processed
+     * Creates a user account for the guest when an order is processed and logs user in
      * @param $order_id
      * @return void
      */
@@ -363,6 +363,13 @@ class Referrals
             wc_get_template( 'emails/email-footer.php' );
             $message = ob_get_clean();
             $mailer->send( $order_email, $subject, $message);
+
+            wp_signon( array(
+                'user_login'    => $order_email,
+                'user_password' => $random_password,
+                'remember'      => true
+            ) );
+
         }
     }
 
