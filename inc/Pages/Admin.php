@@ -89,14 +89,6 @@ class Admin extends BaseController
 			),
 			array(
 				'parent_slug' => 'babytuch_plugin', 
-				'page_title' => 'Vermittlungen',
-				'menu_title' => 'Vermittlungen',
-				'capability' => 'manage_options', 
-				'menu_slug' => 'babytuch_referrals', 
-				'callback' => array($this->callbacks, 'referralsDashboard')
-			),
-			array(
-				'parent_slug' => 'babytuch_plugin', 
 				'page_title' => 'Bestellungen',
 				'menu_title' => 'Bestellungen',
 				'capability' => 'manage_options', 

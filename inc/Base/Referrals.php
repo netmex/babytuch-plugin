@@ -72,8 +72,8 @@ class Referrals
 
         //add_action('babytuch_return_end', [$this,'update_referral_status_on_return'],10,1);
 
-        // TODO: For debugging purposes: run it on init, disable on production
-        add_action('init', [$this, 'update_referral_status']);
+        // For debugging purposes: run it on init, disable on production
+        //add_action('init', [$this, 'update_referral_status']);
 
         add_action('init', [$this, 'schedule_referral_cronjob']);
 
@@ -104,7 +104,7 @@ class Referrals
 
         // add bulk actions
         add_filter('bulk_actions-edit-referral', function($bulk_actions) {
-            $bulk_actions['change-to-payment-pending'] = __("Status zu 'Wartet auf Auszahlung' ändern", 'babytuch');
+            $bulk_actions['change-to-payment-pending'] = __("Status zu 'Auszahlung pendent' ändern", 'babytuch');
             $bulk_actions['change-to-paid'] = __("Status zu 'Ausgezahlt' ändern", 'babytuch');
             $bulk_actions['change-to-invalid'] = __("Status zu 'Ungültig' ändern", 'babytuch');
             return $bulk_actions;
@@ -138,7 +138,7 @@ class Referrals
             printf('<div id="message" class="updated notice-success notice is-dismissable"><p>' . __("%d Vermittlungen als 'Ungültig' markiert.", 'babytuch') . '</p></div>', $num_changed);
         } else if(!empty($_REQUEST['changed-to-payment-pending'])) {
             $num_changed = (int) $_REQUEST['changed-to-payment-pending'];
-            printf('<div id="message" class="updated notice-success notice is-dismissable"><p>' . __("%d Vermittlungen als 'Wartet auf Auszahlung' markiert.", 'babytuch') . '</p></div>', $num_changed);
+            printf('<div id="message" class="updated notice-success notice is-dismissable"><p>' . __("%d Vermittlungen als 'Auszahlung pendent' markiert.", 'babytuch') . '</p></div>', $num_changed);
         }
     }
 
@@ -468,8 +468,6 @@ class Referrals
         update_field(self::$status_field_key, 'pending', $referral_id);
         update_field(self::$premium_field_key, $referral_amount, $referral_id);
 
-        $this->gens_send_email(get_post($referral_id));
-
         return $referral_id;
     }
 
@@ -505,7 +503,10 @@ class Referrals
                 if(!$order_process->isWithinReturnDeadline()) {
                     // create WooCommerce notice
                     $order->add_order_note("Rückgabefrist ist abgelaufen.");
+
+                    // Mark referral as valid and pending for payment
                     $this->change_referral_status($post->ID, 'pending_payment');
+                    $this->gens_send_email(get_post($post->ID));
                 }
 
             }
@@ -654,7 +655,7 @@ class Referrals
                         ),
                         'choices' => array(
                             'pending' => 'Ausstehend',
-                            'pending_payment' => 'Wartet auf Zahlung',
+                            'pending_payment' => 'Auszahlung pendent',
                             'paid' => 'Ausgezahlt',
                             'invalid' => 'Ungültig'
                         ),
@@ -742,14 +743,25 @@ class Referrals
      */
     public function referral_filter_posts_columns( $columns ) {
 
+        /*
+         * Titel (neu: "Datum, Zeit")
+         *   Bestellung
+         *   Vermittelt an ("Kunde")
+         *   Anzahl Tücher
+         *   Bestellstatus
+         *   Vermittler
+         *   Prämie
+         *   Status
+         */
+
         $columns = array(
             'cb' => $columns['cb'],
             'title' => __( 'Titel' ),
-            'referred_by' => __( 'Vermittler', 'babytuch'  ),
-            'referred_to' => __( 'Vermittelt an', 'babytuch' ),
             'order' => __( 'Bestellung', 'babytuch' ),
-            'order_status' => __('Bestellstatus', 'babytuch'),
+            'referred_to' => __( 'Kunde', 'babytuch' ),
             'item_count' => __( 'Anzahl Tücher', 'babytuch' ),
+            'order_status' => __('Bestellstatus', 'babytuch'),
+            'referred_by' => __( 'Vermittler', 'babytuch'  ),
             'premium' => __( 'Prämie', 'babytuch' ),
             'status' => __( 'Status', 'babytuch' ),
         );
@@ -757,50 +769,7 @@ class Referrals
         return $columns;
     }
 
-    public function get_referral_statuses() {
-        return $referral_statuses = [
-            array('status' => 'pending', 'label' => _x('Ausstehend', 'babytuch'), 'label_count' => _n_noop('Ausstehend <span class="count">(%s)</span>', 'Aggregated <span class="count">(%s)</span>')),
-            array('status' => 'pending_payment', 'label' => _x('Wartet auf Zahlung', 'babytuch'), 'label_count' => _n_noop('Wartet auf Zahlung <span class="count">(%s)</span>', 'Aggregated <span class="count">(%s)</span>')),
-            array('status' => 'paid', 'label' => _x('Ausgezahlt', 'babytuch'), 'label_count' => _n_noop('Ausgezahlt <span class="count">(%s)</span>', 'Aggregated <span class="count">(%s)</span>')),
-            array('status' => 'invalid', 'label' => _x('Ungültig', 'babytuch'), 'label_count' => _n_noop('Ungültig <span class="count">(%s)</span>', 'Aggregated <span class="count">(%s)</span>'))
-        ];
-    }
 
-    public function add_referral_statuses() {
-
-        foreach($this->get_referral_statuses() as $status) {
-            register_post_status($status['status'], array(
-                'label'                     => $status['label'],
-                'public'                    => true,
-                'post_type'                 => array( 'referral' ), // Define one or more post types the status can be applied to.
-                'show_in_admin_all_list'    => true,
-                'show_in_admin_status_list' => true,
-                'label_count'               => $status['label_count'],
-            ));
-        }
-    }
-
-    public function append_post_status_list() {
-        global $post;
-
-        if ($post->post_type != 'referral') {
-            return;
-        }
-        $referral_statuses = $this->get_referral_statuses();
-        $status_keys = array_map(fn($status): string => $status['status'],$referral_statuses);
-        $setStatus = '';
-        if (in_array($post->post_status, $status_keys)) {
-            $label = $referral_statuses[array_search($post->post_status, $status_keys)]['label'];
-            $setStatus = 'document.getElementById("post-status-display").innerHTML = "'.$label.'";';
-        }
-        echo '<script>';
-            foreach($referral_statuses as $status) {
-                $selected = $post->post_status == $status['status'];
-                echo 'document.getElementById("post_status").appendChild(new Option("' . $status['label'] . '", "' . $status['status'] . '", ' . $selected . '));';
-            }
-            echo $setStatus;
-        echo  '</script>';
-    }
 
     /**
      * Add data to modified columns for the referral post type
@@ -861,6 +830,12 @@ class Referrals
             'posts_per_page'   => -1,
             'post_type'        => 'referral',
             'meta_query' => array (
+                'relation'      => 'AND',
+                array(
+                    'key'       => 'status',
+                    'value'     => array('paid', 'pending_payment'),
+                    'compare'   => 'IN',
+                ),
                 array (
                     'key' => 'referred_by',
                     'value' => $user_id,
@@ -887,14 +862,14 @@ class Referrals
 
         if($referrals) {?>
 
-            <h2 class="mt4"><?php echo apply_filters( 'wpgens_raf_title', __( 'Vermittlungen', 'gens-raf' ) ); ?></h2>
+            <h2 class="mt4"><?php echo apply_filters( 'wpgens_raf_title', __( 'Meine Vermittlungen', 'gens-raf' ) ); ?></h2>
             <table class="shop_table shop_table_responsive">
             <tr>
                 <th><?php _e('Datum','babytuch'); ?></th>
                 <th><?php _e('Vermittelte Person','babytuch'); ?></th>
-                <th><?php _e('Status','babytuch'); ?></th>
                 <th><?php _e('Anzahl vermittelte Tücher','babytuch'); ?></th>
                 <th><?php _e('Belohnung','babytuch'); ?></th>
+                <th><?php _e('Status','babytuch'); ?></th>
             </tr>
             <?php
             $count=0;
@@ -920,7 +895,7 @@ class Referrals
                     $total_amount = $total_amount + $referral_item_count;
                     $total_refund = $total_refund + $referral_premium;
                     $count++;
-                }elseif($referral_status['value'] === 'pending' || $referral_status === 'pending_payment'){
+                }elseif($referral_status['value'] === 'pending' || $referral_status['value'] === 'pending_payment'){
                     $total_amount_open = $total_amount_open + $referral_item_count;
                     $total_refund_open = $total_refund_open + $referral_premium;
                     $count_open++;
@@ -928,28 +903,28 @@ class Referrals
                 echo '<tr>';
                 echo '<td>'.$referral_date.'</td>';
                 echo '<td>'.$referral_order_username.'</td>';
-                echo '<td>'.$referral_label.'</td>';
                 echo '<td>'.$referral_item_count.'</td>';
                 echo '<td>'.$referral_premium.' CHF</td>';
+                echo '<td>'.$referral_label.'</td>';
                 echo '</tr>';
             }
 
             if($count_open != 0) {
 
                 echo '<tr>';
-                echo '<td colspan="2"><b>Offene Belohnungen Total</b></td>';
-                echo '<td>'.$count_open.'</td>';
+                echo '<td colspan="2"><b>Offene Belohnungen Total ('.$count_open.')</b></td>';
                 echo '<td>'.$total_amount_open.'</td>';
                 echo '<td>'.$total_refund_open.' CHF</td>';
+                echo '<td></td>';
                 echo '</tr>';
             }
             if($count != 0) {
 
                 echo '<tr>';
-                echo '<td colspan="2"><b>Abgeschlossene Belohnungen Total</b></td>';
-                echo '<td></td>';
+                echo '<td colspan="2"><b>Abgeschlossene Belohnungen Total ('.$count.')</b></td>';
                 echo '<td>'.$total_amount.'</td>';
                 echo '<td>'.$total_refund.' CHF</td>';
+                echo '<td></td>';
                 echo '</tr>';
             }
             echo '</table>';
@@ -959,7 +934,7 @@ class Referrals
 
         ?>
 
-        <h4 class="mt4">Ihre IBAN-Nr</h4>
+        <h4 class="mt4">Meine IBAN-Nr</h4>
         <p>Wird nur für Rückerstattung und Vermittlungsprogramm verwendet</p>
         <form method="post" action="">
             <label>IBAN-Nr: </label>
@@ -994,19 +969,17 @@ class Referrals
         $ln2 = $referral_order->get_billing_last_name();
 
         $subject = "Babytuch Weitervermittlung";
-        $user_message = "Hallo $fn <br>";
+        $user_message = "Hallo $fn <br><br>";
 
         if($iban){
-            $user_message .= "Du hast uns $fn2 $ln2 als neuen Kunden vermittelt (Danke!) und 
-			dir damit $referral_premium Franken verdient – Herzliche Gratulation! Wir werden dir den Betrag 
-			nach Ablauf der Umtausch- und Rücksendefrist auf dein Bankkonto mit der IBAN $iban überweisen.<br>";
+            $user_message .= "Du hast uns <strong>$fn2 $ln2</strong> als neuen Kunden vermittelt (Danke!) und 
+			dir damit <strong>CHF $referral_premium</strong> verdient – Herzliche Gratulation! <br><br>Wir werden dir in den nächsten Tagen den Betrag auf dein Bankkonto mit der IBAN $iban überweisen.<br><br>";
         } else {
             $url = get_home_url().'/mein-konto/my-iban/';
-            $user_message .= "Du hast uns $fn2 $ln2 als neuen Kunden vermittelt (Danke!) und dir 
-			damit $referral_premium verdient – Herzliche Gratulation! Damit wir dir diesen Betrag ausbezahlen
+            $user_message .= "Du hast uns <strong>$fn2 $ln2</strong> als neuen Kunden vermittelt (Danke!) und dir 
+			damit <strong>CHF $referral_premium</strong> verdient – Herzliche Gratulation! <br><br>Damit wir dir diesen Betrag ausbezahlen
 			 können, benötigen wir noch die IBAN deines Bankkontos. Bitte erfasse diese in deinem 
-			 Konto $url. Wir werden dir den Betrag nach Ablauf der Umtausch- und Rücksendefrist 
-			 auf dieses Bankkonto überweisen.<br>";
+			 Konto $url.<br><br>";
         }
         $user_message .= "Liebe Grüsse<br>Neva von babytuch.ch";
 

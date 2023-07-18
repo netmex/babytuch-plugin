@@ -106,7 +106,7 @@ class LogisticsController {
 		$order = $this->order_process->getOrder();
 
 		if($this->order_process->isProcessingActivated()) {
-			throw new Exception("Der Verpackungsprozess für diese Bestellung wurde bereits gestartet.");
+			throw new Exception("Der Verpackungsprozess für diese Bestellung wurde bereits gestartet. <br> Scannen Sie den QR-Code unten auf dem Versandauftrag, um den Verpackungsprozess abzuschliessen.");
 		}
 		if($order->get_status() != 'processing') {
 			throw new Exception("Diese Bestellung ist nicht bereit für den Verpackungsprozess.");
@@ -125,7 +125,7 @@ class LogisticsController {
 	public function finish_processing_order() {
 		$order = $this->order_process->getOrder();
 		if(!$this->order_process->isProcessingActivated()) {
-			throw new Exception("Der Verpackungsprozess für diese Bestellung wurde noch nicht gestartet.");
+			throw new Exception("Der Verpackungsprozess für diese Bestellung wurde noch nicht gestartet. <br> Scannen Sie den QR-Code oben auf dem Versandauftrag, um den Verpackungsprozess zu starten.");
 		}
 		if($this->order_process->isSentActivated()) {
 			throw new Exception("Der Verpackungsprozess für diese Bestellung wurde bereits abgeschlossen.");

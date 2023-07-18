@@ -134,12 +134,6 @@ class AdminCallbacks extends BaseController{
         return require_once("$this->plugin_path/templates/billing.php");
     }
 
-    //REFERRALS SUBPAGE
-    public function referralsDashboard(){
-        return require_once("$this->plugin_path/templates/referrals.php");
-    }
-    
-
     public function babytuchLabelSection(){
         echo 'PDF Generator...';
     }
