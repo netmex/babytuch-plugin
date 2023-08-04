@@ -64,6 +64,9 @@ class Referrals
         add_action('babytuch_referral_cronjob', [$this, 'update_referral_status']);
 
 
+        // add referral notice to checkout page below submit button
+        add_action('woocommerce_proceed_to_checkout', [$this, 'referral_checkout_notice'], 10, 0);
+
         // when a woocommerce order is refunded, update the referral status
         //add_action('woocommerce_order_status_refunded', [$this,'update_referral_status_on_return'], 10, 1);
         //add_action('woocommerce_order_status_partially-refunded', [$this,'update_referral_status_on_return'], 10, 1);
@@ -125,6 +128,23 @@ class Referrals
 
         // display information on woocommerce order page in admin
         add_action( 'woocommerce_admin_order_data_after_order_details', [$this, 'show_admin_raf_notes']);
+
+    }
+
+    public function referral_checkout_notice() {
+
+        if ( isset($_COOKIE["gens_raf"]) ) {
+            $rafID = sanitize_text_field($_COOKIE["gens_raf"]);
+
+            if($rafID) {
+                // get user by raf id
+                $user_id = $this->get_user_id_by_raf_id($rafID);
+                if($user_id && $user_id != get_current_user_id()) {
+                    $user = get_user_by('id', $user_id);
+                    echo sprintf(__('<p class="f5">Bestellung vermittelt von: <br /><strong>%s</strong></p>', 'babytuch'), $user->first_name.' '.$user->last_name);
+                }
+            }
+        }
 
     }
 
@@ -428,6 +448,16 @@ class Referrals
         return $randomString;
     }
 
+    public function get_user_id_by_raf_id($referral_id) {
+        $gens_user_ids = get_users( array(
+            "meta_key" => "gens_referral_id",
+            "meta_value" => $referral_id,
+            "number" => 1,
+            "fields" => "ID"
+        ) );
+        return $gens_user_ids[0];
+    }
+
     public function create_referral($order_id) {
         $order = wc_get_order($order_id);
         $referral_id = sanitize_text_field(get_post_meta( $order_id, self::$raf_id_meta_field_key, true));
@@ -435,14 +465,8 @@ class Referrals
         // bail early if there is no referral ID
         if(!$referral_id) return;
 
-        // check that user exists with referral id
-        $gens_user_ids = get_users( array(
-            "meta_key" => "gens_referral_id",
-            "meta_value" => $referral_id,
-            "number" => 1,
-            "fields" => "ID"
-        ) );
-        $user_id = $gens_user_ids[0];
+
+        $user_id = $this->get_user_id_by_raf_id($referral_id);
 
         if(!$user_id) return null;
 
@@ -819,8 +843,9 @@ class Referrals
         $referral_id = $this->get_referral_id_for_user( get_current_user_id() );
         $refLink = esc_url(add_query_arg( 'raf', $referral_id, get_home_url() ));
         ?>
-        <div id="raf-message" class="woocommerce-message"><?php _e( 'Vermittlungsprogramm URL:','babytuch'); ?>
-            <a href="<?php echo $refLink; ?>" ><?php echo $refLink; ?></a>
+        <div id="raf-message" class="woocommerce-message raf-message"><?php _e( 'Vermittlungsprogramm','babytuch'); ?><br/>
+            <p class="f5 mt1 near-black mb1">Teile diese URL mit Babytuch-Interessierten. <br/> Für jedes verkaufte Babytuch über diese Adresse wirst du mit <strong>CHF 5.-</strong> belohnt.</p>
+            <a href="<?php echo $refLink; ?>" class="mb2"><?php echo $refLink; ?></a>
         </div>
         <?php
     }

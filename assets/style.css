@@ -27,6 +27,17 @@
     max-width: 100%
 }
 
+body.gbt_classic_notif .woocommerce-message.raf-message {
+    padding: 15px;
+    padding-left: 40px;
+    box-shadow: -2px 2px 81px -27px rgba(0, 0, 0, 0.29);
+    background: #fffaf5;
+}
+
+body.gbt_classic_notif .woocommerce-message.raf-message:before {
+    left: 10px;
+}
+
 .order-status.status-completed {
     background: #c8d7e1;
     color: #2e4453
