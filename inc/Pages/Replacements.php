@@ -133,7 +133,7 @@ class Replacements {
             <form method="post" action="">
                 <h3>Hallo <?php echo "$first_name" ?></h3>
                 <h4>Du kannst deine Bestellung umtauschen. Bitte wähle die Produkte, welche du zurücksenden und umtauschen möchtest.</h4>
-                <label for="reason">Nenne uns bitte den Grund dafür:</label><br>
+                <label for="reason" class="mt4">Nenne uns bitte den Grund dafür:</label>
                 <select style="width:250px;" name="reason" id="reason">
                     <?php
                     $returns_reasons = get_option('returns_reasons');
@@ -147,7 +147,8 @@ class Replacements {
                 <?php
 
                 $all_items = $order->get_items();
-                echo "<p>Welches der Babytücher möchtest du umtauschen?</p>";
+                echo "<div class='f5 mb4 b'>Welches der Babytücher möchtest du umtauschen?</div>";
+                echo "<hr class='o-50'/>";
                 $j=0;
                 foreach( $all_items as $product ) {
                     $amount = $product->get_quantity();
@@ -167,21 +168,20 @@ class Replacements {
                             $img_url = wp_get_attachment_url( $product_obj->get_image_id());
                         }
                         ?>
-                            <div class="row">
-                                <div class="large-2 columns">
-                                    <img style="width: 150px; height:90px;" src="<?php if($attachment_ids){echo $img_url;}else{echo wp_get_attachment_url( $product_obj->get_image_id() );} ?>"/>
-                                </div>
-                                <div class="large-4 columns">
-                                    <input type='checkbox' id="replaced_product_<?php echo $variation_id; ?>" name='products_to_send_back[]' value='<?php echo $variation_id; ?>'>
+                            <div class="row mb3">
+                                <div class="large-4 columns small-9">
                                     <label for="replaced_product_<?php echo $variation_id; ?>">
-                                        <?php echo $product_obj->get_name(); ?><br/>Grösse: <?php echo $size["groesse"]?>
+                                        <input type='checkbox' id="replaced_product_<?php echo $variation_id; ?>" name='products_to_send_back[]' value='<?php echo $variation_id; ?>'>
+                                        <?php echo $product_obj->get_name(); ?> - Grösse: <?php echo $size["groesse"]?>
                                     </label>
-
-
                                 </div>
-                                <div class="large-6 columns">
+                                <div class="large-2 columns small-3 ">
+                                    <img class="w4 h3" src="<?php if($attachment_ids){echo $img_url;}else{echo wp_get_attachment_url( $product_obj->get_image_id() );} ?>"/>
+                                </div>
+                                <div class="large-3 columns small-9">
 
                                     <?php echo"
+                                    
                                     <label for='replacement_ids'>Ersatzprodukt wählen:</label>
                                     <select style='width:250px;' name='replacement_ids[]' id='replacement_ids'>";
                                     $ps = wc_get_products( array(
@@ -198,9 +198,13 @@ class Replacements {
                                         }
                                     }
                                     echo '</select>';
+                                    ?>
+                                </div>
+                                <div class="large-3 columns small-3">
+                                    <?php
 
                                     //SIZE
-                                    echo" Grösse:
+                                    echo"<label for='replacement_sizes'>Grösse:</label>
                                     <select style='width:65px;' name='replacement_sizes[]'>";
                                     $ps = wc_get_products( array('numberposts' => -1) );
                                     $pr = $ps[3];
@@ -215,9 +219,11 @@ class Replacements {
 
                                     }
                                     echo '</select><br>';
+
                                     ?>
                                 </div>
-                            </div><br/>
+                            <hr class="pt4 o-50"/>
+                            </div>
 
                         <?php
                         $j++;
