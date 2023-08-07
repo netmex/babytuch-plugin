@@ -100,8 +100,8 @@ class Returns
 
         <form method="post" action="">
             <h3>Hallo <?php echo "$first_name" ?></h3>
-            <h4>Du kannst deine Rücksendung hier aktivieren. Bitte fülle dazu das folgende Formular aus.</h4>
-            <label for="reason">Nenne uns bitte den Grund dafür:</label><br>
+            <h4>Du kannst deine Rücksendung hier aktivieren. <br>Bitte fülle dazu das folgende Formular aus.</h4>
+            <label for="reason" class="mt4">Nenne uns bitte den Grund dafür:</label>
             <select id="reason" style="width:250px;" name="reason">
 			    <?php
 			    $returns_reasons = get_option('returns_reasons');
@@ -111,12 +111,13 @@ class Returns
 			    }
 			    ?>
             </select><br><br>
-            <label for="iban">Bankkonto (IBAN) für die Rückerstattung:</label><br>
+            <label for="iban">Bankkonto (IBAN) für die Rückerstattung:</label>
             <input id="iban" style='width:250px;' type='text' name='iban' value="<?php echo $current_iban;?>"><br><br>
-            <p>Welches der Babytücher möchtest du zurücksenden?</p>
+
+            <div class='f5 mb4 b'>Welches der Babytücher möchtest du zurücksenden?</div>
 
 		    <?php
-
+            $j=0;
 		    $all_items = $order->get_items();
 		    foreach( $all_items as $product ) {
 			    $amount = $product->get_quantity();
@@ -135,19 +136,28 @@ class Returns
 				        $img_url = wp_get_attachment_url( $product_obj->get_image_id());
 				    }
 				    ?>
-                    <img style="width: 150px; height:90px;" src="<?php echo $img_url; ?>"/>
-                    <label for="product-<?php echo $variation_id; ?>" class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">
-                        <input id="product-<?php echo $variation_id; ?>" type='checkbox' name='products_to_send_back[]' value="<?php echo $variation_id; ?>" >
-                        <span>Grösse: <?php echo $size["groesse"]; ?></span>
-                    </label>
-                    <br>
+                    <div class="row bt <?php echo $j > 0 ? "bb" : ""; ?> b--black-10">
+                        <div class="large-4 columns small-9  pv4 pv3-l">
+                            <label for="product-<?php echo $variation_id; ?>" class="flex mt0">
+                                <input id="product-<?php echo $variation_id; ?>" type='checkbox' name='products_to_send_back[]' value="<?php echo $variation_id; ?>" >
+                                <?php echo $product_obj->get_name(); ?><br>
+                                Grösse: <?php echo $size["groesse"]; ?>
+                            </label>
+                        </div>
+                        <div class="large-8 columns small-3 pv4 pv3-l">
+                            <img class="w4 h3" src="<?php echo $img_url; ?>"/>
+                        </div>
+
+
+                    </div>
 				    <?php
+                    $j++;
 			    }
 		    }
 
 		    ?>
 
-            <input type="submit" value="Zurücksenden" name="return"><br><br><br>
+            <input type="submit" value="Zurücksenden" name="return" class="mt4"><br><br><br>
 		    <?php if($order_process->isReplacementOrder()){ ?>
                 <br><p>Da es sich um eine Umtausch Bestellung handelt, haben Sie
                     die Versandkosten von CHF <?php echo $order_process->getCostOfSending(); ?> zu begleichen.
