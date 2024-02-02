@@ -20,6 +20,8 @@ class Functions{
         add_action( 'init', [$this, 'register_new_order_status'] );
         add_filter( 'wc_order_statuses', [$this, 'add_new_status_to_order_statuses'] );
 
+        add_filter( 'wc_order_is_editable', [$this,'custom_order_status_editable'], 10, 2 );
+
         // ensures an order process is stored in the DB when a new order is created
         add_action('woocommerce_new_order', [$this, 'create_order_process'], 10, 1);
 
@@ -124,6 +126,14 @@ class Functions{
             'label_count'               => _n_noop( 'Awaiting return (%s)', 'Awaiting return (%s)' )
         ) );
 
+    }
+
+
+    function custom_order_status_editable( $allow_edit, $order ) {
+        if ( $order->get_status() === 'awaiting-return' ) {
+            $allow_edit = true;
+        }
+        return $allow_edit;
     }
 
     function add_new_status_to_order_statuses( $order_statuses ) {
